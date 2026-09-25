@@ -1,0 +1,155 @@
+/* ===== Página do pedido ===== */
+
+/* Progresso */
+.progress{display:flex;gap:6px;flex:1;max-width:620px}
+.seg{flex:1;min-width:0}
+.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--turq);transition:width .45s ease}
+.seg.done .bar i,.seg.cur .bar i{width:100%}
+.seg.cur .bar i{background:var(--navy)}
+.seg span{display:block;font-size:12px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg.cur span{color:var(--navy);font-weight:600}
+
+/* Layout: quadra + painel */
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:start}
+.court{background:var(--sand);border-radius:24px;overflow:hidden;position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+.court svg{display:block;width:100%;height:auto}
+.panel{min-width:0}
+.label{font-weight:600;font-size:15px;margin:0 0 10px}
+
+/* Contador */
+.stepper{display:flex;align-items:center;gap:20px}
+.stepper button{width:56px;height:56px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-size:26px;line-height:1;color:var(--navy);cursor:pointer;transition:border-color .2s}
+.stepper button:hover{border-color:var(--navy)}
+.stepper .val{font:700 80px/1 "Barlow Condensed",sans-serif;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.split{display:flex;gap:28px;margin-top:22px}
+.split b{font:700 30px/1 "Barlow Condensed",sans-serif;margin-right:4px}
+
+/* Abas de jogadores */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:0 0 16px;scrollbar-width:thin}
+.chip{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px 5px 5px;display:flex;align-items:center;gap:7px;font:500 14px Barlow,sans-serif;color:var(--ink);cursor:pointer;min-height:38px}
+.chip .g{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px "Barlow Condensed",sans-serif;background:#E8EEF4;color:var(--navy)}
+.chip.F .g{background:var(--turq-soft);color:var(--turq-ink)}
+.chip.ok::after{content:"✓";color:var(--turq);font-weight:700}
+.chip.on{border-color:var(--navy);background:var(--navy);color:#fff}
+.chip.on .g{background:#fff}
+
+/* Cabeçalho do jogador */
+.phead{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.phead svg{width:96px;height:auto;flex:none}
+.pname{font:700 24px/1.1 "Barlow Condensed",sans-serif}
+.pprice{font:700 30px/1.1 "Barlow Condensed",sans-serif;margin-top:8px}
+
+/* Opções */
+.group{margin-bottom:22px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+.opts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opt{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,background-color .2s}
+.opt:hover{border-color:#B9C6D3}
+.opt.on{border-color:var(--turq);background:var(--turq-soft)}
+.opt svg{width:100%;height:64px;display:block;margin-bottom:8px}
+.opt b{display:block;font-weight:600;font-size:15px;line-height:1.25}
+.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:4px}
+.gopt{text-align:center;padding:16px 12px}
+.gopt svg{height:170px}
+.gopt b{font-size:17px}
+.linkbtn{background:none;border:0;padding:4px 0;color:var(--turq-ink);font:600 14px Barlow,sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+
+/* Tamanhos */
+.sizes{display:flex;flex-wrap:wrap;gap:8px}
+.size{width:52px;height:48px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:600 15px Barlow,sans-serif;color:var(--ink);cursor:pointer;transition:background-color .15s,border-color .15s}
+.size:hover{border-color:var(--navy)}
+.size.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* Nome e número */
+.namerows{display:flex;flex-direction:column;gap:4px}
+.namerow{display:grid;grid-template-columns:28px minmax(0,1fr) 76px;gap:10px;align-items:center;padding:6px 8px;border-radius:14px;transition:background-color .2s}
+.namerow.solo{grid-template-columns:minmax(0,1fr) 84px;padding:0}
+.namerow.on:not(.solo){background:var(--turq-soft)}
+.namerow .g{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px "Barlow Condensed",sans-serif;background:#E8EEF4}
+input{font:500 17px Barlow,sans-serif;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;color:var(--ink);background:#fff;width:100%;min-width:0;min-height:48px}
+input:focus{outline:none;border-color:var(--turq);box-shadow:0 0 0 3px var(--turq-soft)}
+input.name,input.num{text-transform:uppercase;letter-spacing:.04em;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:19px}
+input.num{text-align:center}
+input.bad{border-color:var(--err);box-shadow:0 0 0 3px #FDE4E1}
+.ferr{color:var(--err);font-size:14px;margin-top:6px}
+.req{color:var(--err)}
+
+/* Confirmação */
+.items{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.item-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.item-h b.v{font:700 22px "Barlow Condensed",sans-serif;white-space:nowrap}
+.item ul{list-style:none;margin:0;padding:0;font-size:15px}
+.item ul li{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--line)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-bottom:14px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;font-weight:600;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+td.v,th.v{text-align:right;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding-top:6px}
+.total b{font:700 38px "Barlow Condensed",sans-serif}
+.edits{display:flex;gap:6px 16px;flex-wrap:wrap;margin-bottom:14px}
+.note{font-size:14px;background:#F4F7FA;border-radius:12px;padding:12px 14px;color:var(--muted);max-width:52ch}
+
+/* Barra de navegação */
+.navbar{margin-top:26px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.navtot{margin-left:auto;text-align:right;line-height:1.1}
+.navtot small{display:block;font-size:12px;color:var(--muted)}
+.navtot b{font:700 24px "Barlow Condensed",sans-serif}
+.err{color:var(--err);font-size:14px;min-height:1.3em;margin-bottom:8px}
+.err:empty{min-height:0;margin:0}
+
+/* Quadra */
+.lbl{font-family:"Barlow Condensed",sans-serif;font-weight:600;fill:var(--navy)}
+.ct{font:700 26px "Barlow Condensed",sans-serif;fill:var(--navy)}
+.cs{font:500 14px Barlow,sans-serif;fill:#7A6440}
+.fig{cursor:pointer}
+.fig .in{transform-box:fill-box;transform-origin:50% 100%}
+.fig .in.enter{animation:drop .65s cubic-bezier(.3,1.5,.5,1) both}
+.fig .in.pop{animation:pop .45s ease}
+.fig .in.flip{animation:flip .55s ease}
+.ring{transform-box:fill-box;transform-origin:center;animation:pulse 1.6s ease-in-out infinite}
+.pane.r{animation:inR .38s ease both}
+.pane.l{animation:inL .38s ease both}
+@keyframes drop{from{opacity:0;transform:translateY(-70px)}}
+@keyframes pop{40%{transform:translateY(-9px) scale(1.06)}}
+@keyframes flip{50%{transform:scaleX(0)}}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes inR{from{opacity:0;transform:translateX(22px)}}
+@keyframes inL{from{opacity:0;transform:translateX(-22px)}}
+
+/* ===== Celular ===== */
+@media (max-width:860px){
+  .wrap{padding-top:12px;padding-bottom:0}
+  header.top{flex-direction:column;align-items:stretch;gap:12px;margin-bottom:14px}
+  .brand{font-size:21px}
+  .logo{width:38px;height:38px}
+  .seg span{display:none}
+  .seg.cur span{display:block}
+  .seg.cur{flex:3}
+  .grid{grid-template-columns:1fr;gap:18px}
+  .court{position:relative;top:0;border-radius:18px}
+  .lead{margin-bottom:18px}
+  .stepper{justify-content:center}
+  .split{justify-content:center}
+  .opts{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+  .opt{padding:10px}
+  .opt svg{height:56px}
+  .gopt svg{height:150px}
+  /* A quadra logo acima já mostra o jogador; aqui fica só o resumo */
+  .phead{margin-bottom:14px}
+  .phead svg{display:none}
+  .pprice{font-size:26px;margin-top:4px}
+  .sizes{gap:6px}
+  .size{flex:1 1 0;width:auto;min-width:44px}
+  /* Barra fixa no rodapé com total e botão de continuar */
+  .navbar{position:sticky;bottom:0;z-index:5;margin:22px calc(-1 * var(--gutter)) 0;padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+  .nav .btn.pri{padding:12px 22px}
+  .nav .btn.ghost{padding-right:4px}
+  .pane{padding-bottom:0}
+}

@@ -1,0 +1,74 @@
+/* ===== Página de introdução ===== */
+section{margin-top:56px}
+
+/* Destaque */
+.hero{margin-top:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;align-items:center}
+.hero-img{border-radius:24px;width:100%;aspect-ratio:1698/926;object-fit:cover;background:var(--sand)}
+.hero h1{font-size:52px}
+.hero .lead{font-size:18px}
+.cta{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.cta small{color:var(--muted);font-size:14px}
+
+/* Cores */
+.colors{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:var(--muted)}
+.colors span{display:flex;align-items:center;gap:8px}
+.colors i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line)}
+
+/* Modelos */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:6px}
+.tab{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 18px;font:600 15px Barlow,sans-serif;color:var(--ink);cursor:pointer;min-height:44px}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.model{margin:0}
+.model a{display:block;border-radius:20px;overflow:hidden;background:var(--sand)}
+.model img{width:100%;aspect-ratio:3/2;object-fit:cover}
+.model figcaption{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:12px}
+.model figcaption b{font:700 22px "Barlow Condensed",sans-serif}
+.model figcaption span{color:var(--muted);font-size:14px}
+
+/* Preços */
+.prices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:720px}
+.price{border:1.5px solid var(--line);border-radius:18px;padding:18px 20px}
+.price-h{font:700 22px "Barlow Condensed",sans-serif;margin-bottom:10px}
+.price dl{margin:0}
+.price dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.price dt{color:var(--muted);font-size:15px}
+.price dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.price dd.big{font:700 30px "Barlow Condensed",sans-serif}
+.note-line{color:var(--muted);font-size:15px;margin-top:12px}
+
+/* Detalhes */
+.feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.feat{background:#F4F7FA;border-radius:18px;padding:18px 20px}
+.feat b{display:block;font:700 20px "Barlow Condensed",sans-serif;margin-bottom:4px}
+.feat p{margin:0;color:var(--muted);font-size:15px}
+
+.final{text-align:center;background:var(--navy);color:#fff;border-radius:24px;padding:40px 20px}
+.final h2{color:#fff}
+.final p{color:#C6D3E0;margin:0 0 20px}
+.final .btn.pri{background:var(--turq);color:var(--navy)}
+.final .btn.pri:hover{background:#2CC6D6}
+
+/* Barra fixa (celular) */
+.stickycta{display:none}
+
+@media (max-width:860px){
+  section{margin-top:40px}
+  header.top .btn{display:none}
+  .brand{font-size:21px}
+  .logo{width:38px;height:38px}
+  .hero{grid-template-columns:1fr;gap:20px}
+  .hero-img{border-radius:18px}
+  .hero h1{font-size:38px}
+  .hero .lead{font-size:17px;margin-bottom:18px}
+  .cta .btn{width:100%}
+  .cta small{align-self:center}
+  .model a,.final{border-radius:16px}
+  .prices{grid-template-columns:1fr}
+  .feats{grid-template-columns:1fr;gap:10px}
+  .final{margin-bottom:24px}
+  .stickycta{display:block;position:sticky;bottom:0;z-index:5;padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);
+    transform:translateY(110%);transition:transform .3s ease}
+  .stickycta.show{transform:none}
+  .stickycta .btn{width:100%}
+}

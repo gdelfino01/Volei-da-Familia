@@ -4,581 +4,91 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<title>Kit Vôlei da Família</title>
+<meta name="theme-color" content="#0B2D50">
+<title>Vôlei da Família 2026</title>
+<meta name="description" content="Conheça os uniformes do Vôlei da Família 2026 e faça o pedido do seu kit.">
+<meta property="og:title" content="Vôlei da Família 2026">
+<meta property="og:description" content="Conheça os uniformes e faça o pedido do seu kit.">
+<meta property="og:image" content="assets/img/logo.webp">
+<link rel="icon" href="assets/img/logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --navy:#0B2D50;--turq:#00B4C7;--turq-soft:#E3F7F9;--ink:#0B2D50;--muted:#5E6F82;
-  --line:#E4E9EF;--sand:#F3E6CB;--bg:#FFFFFF;
-  box-sizing:border-box;color-scheme:light;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
-}
-*,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1180px;margin:0 auto;padding:20px 20px 48px}
-header.top{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:20px}
-.brand{font:700 24px/1 "Barlow Condensed",Barlow,sans-serif}
-.brand small{display:block;font:500 13px/1.4 Barlow,sans-serif;color:var(--muted);margin-top:2px}
-.progress{display:flex;gap:6px;flex:1;max-width:620px}
-.seg{flex:1;min-width:0}
-.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--turq);transition:width .45s ease}
-.seg.done .bar i,.seg.cur .bar i{width:100%}
-.seg.cur .bar i{background:var(--navy)}
-.seg span{display:block;font-size:12px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.seg.cur span{color:var(--navy);font-weight:600}
-.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:start}
-.court{background:var(--sand);border-radius:24px;overflow:hidden;position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
-.court svg{display:block;width:100%;height:auto}
-.panel{min-width:0}
-.kicker{font:600 15px "Barlow Condensed",sans-serif;color:var(--turq)}
-h1{font:700 42px/1.02 "Barlow Condensed",sans-serif;margin:4px 0 8px}
-.lead{color:var(--muted);margin:0 0 24px;max-width:46ch}
-.mut{color:var(--muted)}
-.label{font-weight:600;font-size:15px;margin:0 0 10px}
-.stepper{display:flex;align-items:center;gap:20px}
-.stepper button{width:54px;height:54px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-size:26px;line-height:1;color:var(--navy);cursor:pointer;transition:border-color .2s}
-.stepper button:hover{border-color:var(--navy)}
-.stepper .val{font:700 80px/1 "Barlow Condensed",sans-serif;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
-.split{display:flex;gap:28px;margin-top:22px}
-.split b{font:700 30px/1 "Barlow Condensed",sans-serif;margin-right:4px}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:0 0 16px}
-.chip{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px 5px 5px;display:flex;align-items:center;gap:7px;font:500 14px Barlow,sans-serif;color:var(--ink);cursor:pointer}
-.chip .g{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 13px "Barlow Condensed",sans-serif;background:#E8EEF4;color:var(--navy)}
-.chip.F .g{background:var(--turq-soft);color:#007F8D}
-.chip.ok::after{content:"✓";color:var(--turq);font-weight:700}
-.chip.on{border-color:var(--navy);background:var(--navy);color:#fff}
-.chip.on .g{background:#fff}
-.phead{display:flex;gap:16px;align-items:center;margin-bottom:18px}
-.phead svg{width:96px;height:auto;flex:none}
-.pname{font:700 24px/1.1 "Barlow Condensed",sans-serif}
-.pprice{font:700 30px/1.1 "Barlow Condensed",sans-serif;margin-top:8px}
-.group{margin-bottom:22px}
-.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
-.opt{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,background-color .2s}
-.opt:hover{border-color:#B9C6D3}
-.opt.on{border-color:var(--turq);background:var(--turq-soft)}
-.opt svg{width:100%;height:64px;display:block;margin-bottom:8px}
-.opt b{display:block;font-weight:600;font-size:15px;line-height:1.25}
-.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:4px}
-.sw{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px}
-.linkbtn{background:none;border:0;padding:0;color:#007F8D;font:600 14px Barlow,sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.hint{font-size:13px;color:var(--muted);margin-top:6px}
-.sizes{display:flex;flex-wrap:wrap;gap:8px}
-.size{width:50px;height:46px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:600 15px Barlow,sans-serif;color:var(--ink);cursor:pointer;transition:background-color .15s,border-color .15s}
-.size:hover{border-color:var(--navy)}
-.size.on{background:var(--navy);border-color:var(--navy);color:#fff}
-.namerows{display:flex;flex-direction:column;gap:4px}
-.namerow{display:grid;grid-template-columns:28px minmax(0,1fr) 76px;gap:10px;align-items:center;padding:6px 8px;border-radius:14px;transition:background-color .2s}
-.namerow.on{background:var(--turq-soft)}
-.namerow .g{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px "Barlow Condensed",sans-serif;background:#E8EEF4}
-input{font:500 17px Barlow,sans-serif;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;color:var(--ink);background:#fff;width:100%;min-width:0}
-input:focus{outline:none;border-color:var(--turq);box-shadow:0 0 0 3px var(--turq-soft)}
-input.name,input.num{text-transform:uppercase;letter-spacing:.04em;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:19px}
-input.num{text-align:center}
-.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;margin-bottom:14px}
-table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
-th{text-align:left;font-weight:600;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-tr:last-child td{border-bottom:0}
-td.v,th.v{text-align:right;font-variant-numeric:tabular-nums}
-.small-tbl table{min-width:320px}
-.total{display:flex;justify-content:space-between;align-items:baseline;padding-top:6px}
-.total b{font:700 38px "Barlow Condensed",sans-serif}
-.edits{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-top:26px;gap:12px}
-.btn{border:0;border-radius:999px;padding:14px 28px;font:600 16px Barlow,sans-serif;cursor:pointer;transition:background-color .2s}
-.btn.pri{background:var(--navy);color:#fff}
-.btn.pri:hover{background:#133F6D}
-.btn.ghost{background:none;color:var(--muted);padding-left:0}
-.btn:disabled{opacity:.55;cursor:default}
-input.bad{border-color:#B42318;box-shadow:0 0 0 3px #FDE4E1}
-.ferr{color:#B42318;font-size:14px;margin-top:6px}
-.req{color:#B42318}
-.err{color:#B42318;font-size:14px;margin-top:14px;min-height:1.3em}
-.note{font-size:14px;background:#F4F7FA;border-radius:12px;padding:12px 14px;color:var(--muted);max-width:52ch}
-button:focus-visible,.fig:focus-visible{outline:2px solid var(--turq);outline-offset:2px}
-.lbl{font-family:"Barlow Condensed",sans-serif;font-weight:600;fill:var(--navy)}
-.ct{font:700 26px "Barlow Condensed",sans-serif;fill:var(--navy)}
-.cs{font:500 14px Barlow,sans-serif;fill:#7A6440}
-.fig{cursor:pointer}
-.fig .in{transform-box:fill-box;transform-origin:50% 100%}
-.fig .in.enter{animation:drop .65s cubic-bezier(.3,1.5,.5,1) both}
-.fig .in.pop{animation:pop .45s ease}
-.fig .in.flip{animation:flip .55s ease}
-.ring{transform-box:fill-box;transform-origin:center;animation:pulse 1.6s ease-in-out infinite}
-.pane.r{animation:inR .38s ease both}
-.pane.l{animation:inL .38s ease both}
-@keyframes drop{from{opacity:0;transform:translateY(-70px)}}
-@keyframes pop{40%{transform:translateY(-9px) scale(1.06)}}
-@keyframes flip{50%{transform:scaleX(0)}}
-@keyframes pulse{50%{opacity:.35}}
-@keyframes inR{from{opacity:0;transform:translateX(22px)}}
-@keyframes inL{from{opacity:0;transform:translateX(-22px)}}
-@media (max-width:860px){
-  .grid{grid-template-columns:1fr;gap:22px}
-  .court{position:relative;top:0}
-  header.top{flex-direction:column;align-items:stretch;gap:14px}
-  .seg span{display:none}
-  .seg.cur span{display:block}
-  .seg.cur{flex:3}
-  h1{font-size:36px}
-}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/intro.css">
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Vôlei da Família<small>Pedido de kits 2026</small></div>
-    <nav class="progress" id="prog" aria-label="Etapas do pedido"></nav>
+    <a class="brand" href="./"><img class="logo" src="assets/img/logo.webp" alt="" width="46" height="46"><span>Vôlei da Família<small>Uniformes 2026</small></span></a>
+    <a class="btn pri sm" href="pedido.html">Fazer pedido</a>
   </header>
-  <main class="grid">
-    <section class="court" id="court" aria-label="Quadra com os jogadores"></section>
-    <section class="panel" id="panel"></section>
+
+  <main>
+    <section class="hero">
+      <img class="hero-img" src="assets/img/logo.webp" width="1698" height="926" alt="Escudo do Vôlei da Família 2026: um homem e uma mulher saltando na rede, em azul-marinho, turquesa e dourado, sobre a areia.">
+      <div>
+        <div class="kicker">Kits 2026</div>
+        <h1>O uniforme da família para a areia</h1>
+        <p class="lead">Branco, turquesa e azul-marinho, com o escudo na frente e o seu nome e número nas costas.</p>
+        <div class="cta" id="hero-cta">
+          <a class="btn pri" href="pedido.html">Montar meu kit</a>
+          <small>Leva uns 2 minutos. Dá para pedir de 1 a 12 kits.</small>
+        </div>
+        <div class="colors" aria-label="Cores do uniforme">
+          <span><i style="background:#FFFFFF"></i>Branco</span>
+          <span><i style="background:#00B4C7"></i>Turquesa</span>
+          <span><i style="background:#0B2D50"></i>Azul-marinho</span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-modelos">
+      <h2 id="t-modelos">Os modelos</h2>
+      <div class="tabs" role="tablist" aria-label="Modelos do uniforme">
+        <button class="tab" role="tab" data-model="regata" aria-selected="true" aria-controls="model-regata">Regata e short</button>
+        <button class="tab" role="tab" data-model="camiseta" aria-selected="false" aria-controls="model-camiseta" tabindex="-1">Camiseta</button>
+        <button class="tab" role="tab" data-model="feminino" aria-selected="false" aria-controls="model-feminino" tabindex="-1">Feminino</button>
+      </div>
+      <figure class="model" id="model-regata" role="tabpanel">
+        <a href="assets/img/uniforme-regata.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-regata.webp" width="1536" height="1024" alt="Regata branca com recortes turquesa e azul-marinho, escudo e número 01 na frente, nome e número nas costas, e short azul-marinho com faixas laterais."></a>
+        <figcaption><b>Regata e short</b><span>Toque na imagem para ampliar</span></figcaption>
+      </figure>
+      <figure class="model" id="model-camiseta" role="tabpanel" hidden>
+        <a href="assets/img/uniforme-camiseta.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-camiseta.webp" width="1536" height="1024" loading="lazy" alt="Camiseta manga curta branca com mangas azul-marinho e recortes turquesa, escudo e número 01 na frente, nome e número nas costas."></a>
+        <figcaption><b>Camiseta manga curta</b><span>Toque na imagem para ampliar</span></figcaption>
+      </figure>
+      <figure class="model" id="model-feminino" role="tabpanel" hidden>
+        <a href="assets/img/uniforme-feminino.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-feminino.webp" width="1536" height="1024" loading="lazy" alt="Top cropped branco com recortes turquesa e azul-marinho, escudo e número na frente, nome e número nas costas, e short feminino azul-marinho."></a>
+        <figcaption><b>Top cropped e short feminino</b><span>Toque na imagem para ampliar</span></figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="t-precos">
+      <h2 id="t-precos">Preços</h2>
+      <div class="prices" id="precos"></div>
+      <p class="note-line">Kit completo é parte de cima e short. Você escolhe a linha e os tamanhos de cada peça no pedido.</p>
+    </section>
+
+    <section aria-labelledby="t-detalhes">
+      <h2 id="t-detalhes">Detalhes</h2>
+      <div class="feats">
+        <div class="feat"><b>Tecido dry-fit</b><p>Leve, respirável e seca rápido no sol.</p></div>
+        <div class="feat"><b>Proteção UV</b><p>Feito para passar o dia na areia.</p></div>
+        <div class="feat"><b>Nome e número</b><p>Até 12 letras e número de 0 a 99 nas costas.</p></div>
+      </div>
+    </section>
+
+    <section class="final" id="final-cta">
+      <h2>Juntos no jogo, sempre</h2>
+      <p>Monte o kit de cada pessoa e envie o pedido.</p>
+      <a class="btn pri" href="pedido.html">Montar meu kit</a>
+    </section>
   </main>
 </div>
 
-<script>
-/* ===== Configuração ===== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxshfOgz1BvXShRpE9xWZTzURpcvgi97m65usdppzkWolhaYapS5ZOFiXDJMfDc2G75-A/exec'; // cole aqui a URL do App da Web do Google Apps Script
-const PRICES = {
-  prata:  { nome:'Prata',  top:54.90, short:43.90, kit:98.90, cor:'#A9B3BE' },
-  bronze: { nome:'Bronze', top:44.90, short:37.90, kit:82.90, cor:'#B5733A' }
-};
-const TOPS   = { cropped:'Top cropped', camiseta:'Camiseta manga curta', regata:'Regata' };
-const SHORTS = { fem:'Short feminino', masc:'Short masculino', none:'Sem short' };
-const SIZES  = ['PP','P','M','G','GG','XG'];
-const MAXN   = 12;
-const STEPS  = ['Quantidade','Gênero','Peças','Tamanhos','Nome e número','Confirmação'];
+<div class="stickycta" id="stickycta"><a class="btn pri" href="pedido.html">Montar meu kit</a></div>
 
-/* ===== Estado ===== */
-const C = { navy:'#0B2D50', turq:'#00B4C7', light:'#7FDCE6', gold:'#E3A83B', skin:'#E2B08A', hair:'#3A2A22', ghost:'#DCE3EA', ghostSkin:'#C9D3DD' };
-const S = { step:0, players:[], sel:0, resp:'', err:'', anim:true, dir:1, done:null, sending:false, respBad:false };
-const seen = new Set(), flash = new Set();
-let lastView = 'front', uidc = 0;
-const uid = () => 'k' + (++uidc);
-const brl = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const $ = id => document.getElementById(id);
-
-function mk(){ return { id:uid(), g:null, line:null, top:null, short:null, topSize:null, shortSize:null, name:'', num:'' }; }
-function setN(n){
-  n = Math.max(1, Math.min(MAXN, n));
-  while (S.players.length < n){ const p = mk(); if (S.step >= 1) p.g = 'M'; S.players.push(p); }
-  S.players.length = n;
-  if (S.sel >= n) S.sel = n - 1;
-}
-const femCount = () => S.players.filter(p => p.g === 'F').length;
-function sanitize(p){
-  if (p.g === 'M'){
-    if (p.top === 'cropped'){ p.top = null; p.topSize = null; }
-    if (p.short === 'fem'){ p.short = null; p.shortSize = null; }
-  }
-}
-function setFem(k){
-  S.players.forEach((p,i) => { const g = i < k ? 'F' : 'M'; if (p.g !== g){ p.g = g; sanitize(p); flash.add(p.id); } });
-}
-function price(p){
-  if (!p.top || !p.line) return 0;
-  const L = PRICES[p.line];
-  return (p.short && p.short !== 'none') ? L.kit : L.top;
-}
-const total = () => S.players.reduce((a,p) => a + price(p), 0);
-const done2 = p => !!(p.line && p.top && p.short);
-const done3 = p => !!(p.topSize && (p.short === 'none' || p.shortSize));
-const validResp = v => { const t = v.trim(), parts = t.split(/\s+/).filter(Boolean);
-  return t.length >= 5 && parts.length >= 2 && parts.every(w => /^\p{L}[\p{L}'.-]*$/u.test(w)); };
-const tipo  = p => p.short === 'none' ? 'Só parte de cima' : 'Kit completo';
-
-/* ===== Desenho do jogador (SVG em camadas) ===== */
-const TOP_PATH = {
-  camiseta:'M31 49 Q50 45 69 49 L80 58 L74 74 L67 70 L66 121 L34 121 L33 70 L26 74 L20 58 Z',
-  regataF:'M38 49 Q50 57 62 49 L66 50 Q63 62 67 72 L66 121 L34 121 L33 72 Q37 62 34 50 Z',
-  regataM:'M39 49 Q50 58 61 49 L67 50 Q64 63 68 72 L67 121 L33 121 L32 72 Q36 63 33 50 Z',
-  cropped:'M38 49 Q50 58 62 49 L66 50 Q63 62 66 72 L65 88 L35 88 L34 72 Q37 62 34 50 Z'
-};
-const SH_PATH = {
-  masc:'M33 114 L67 114 L71 155 L53 157 L50 133 L47 157 L29 155 Z',
-  fem:'M34 114 L66 114 L69 139 L53 140 L50 128 L47 140 L31 139 Z'
-};
-function sym(pts, fill){
-  const a = 'M' + pts.map(p => p.join(' ')).join(' L') + 'Z';
-  const b = 'M' + pts.map(([x,y]) => (100 - x) + ' ' + y).join(' L') + 'Z';
-  return `<path d="${a}" fill="${fill}"/><path d="${b}" fill="${fill}"/>`;
-}
-const TXT = `font-family="'Barlow Condensed',sans-serif" font-weight="700" text-anchor="middle" fill="${C.navy}"`;
-
-function topSVG(p, view, noText){
-  if (!p.top) return `<path d="${TOP_PATH.camiseta}" fill="${C.ghost}"/>`;
-  const tee = p.top === 'camiseta', crop = p.top === 'cropped';
-  const d = tee ? TOP_PATH.camiseta : crop ? TOP_PATH.cropped : (p.g === 'F' ? TOP_PATH.regataF : TOP_PATH.regataM);
-  const id = uid();
-  let st = '';
-  if (tee) st += sym([[12,48],[35,48],[35,64],[33,74],[24,82],[12,64]], C.navy) + sym([[21,76],[33,60],[34,64],[24,79]], C.turq);
-  st += sym([[28,124],[46,124],[37,94],[31,66],[28,60]], C.turq)
-      + sym([[40,124],[46,124],[39,104]], C.light)
-      + sym([[28,124],[37,124],[32,98],[28,86]], C.navy)
-      + sym([[29,56],[42,66],[36,80],[29,70]], C.turq);
-  let out = `<clipPath id="${id}"><path d="${d}"/></clipPath><path d="${d}" fill="#fff"/><g clip-path="url(#${id})">${st}</g>`;
-  out += `<path d="${d}" fill="none" stroke="${C.navy}" stroke-width="${tee ? 1 : 1.8}" stroke-linejoin="round"/>`;
-  if (tee) out += `<path d="${view === 'back' ? 'M42 47.5 Q50 50.5 58 47.5' : 'M41 47.5 Q50 55 59 47.5'}" fill="none" stroke="${C.navy}" stroke-width="3" stroke-linecap="round"/>`;
-  if (noText) return out;
-  const hasNum = p.num !== '', num = hasNum ? p.num.padStart(2,'0') : '00';
-  if (view === 'front'){
-    const ly = crop ? 62 : 64, lr = crop ? 4.2 : 5.5;
-    out += `<circle cx="50" cy="${ly}" r="${lr}" fill="${C.gold}" stroke="${C.navy}" stroke-width="1"/><path d="M${50 - lr*.6} ${ly} H${50 + lr*.6}" stroke="${C.navy}" stroke-width=".8"/>`;
-    out += `<text x="50" y="${crop ? 83 : 98}" font-size="${crop ? 12 : 18}" ${TXT} opacity="${hasNum ? 1 : .25}">${num}</text>`;
-  } else {
-    const name = p.name || 'NOME', w = crop ? 24 : 30, max = crop ? 7 : 9;
-    const fs = Math.min(max, w / (Math.max(name.length, 3) * 0.5));
-    out += `<text x="50" y="${crop ? 62 : 66}" font-size="${fs.toFixed(2)}" ${TXT} opacity="${p.name ? 1 : .25}">${esc(name)}</text>`;
-    out += `<text x="50" y="${crop ? 84 : 101}" font-size="${crop ? 18 : 28}" ${TXT} opacity="${hasNum ? 1 : .25}">${num}</text>`;
-  }
-  return out;
-}
-function shortSVG(p, view){
-  if (!p.short || p.short === 'none') return `<path d="${SH_PATH.masc}" fill="${C.ghost}"/>`;
-  const d = SH_PATH[p.short], id = uid(), fem = p.short === 'fem';
-  let out = `<clipPath id="${id}"><path d="${d}"/></clipPath><path d="${d}" fill="${C.navy}"/>`;
-  out += `<g clip-path="url(#${id})">${sym([[26,112],[33,112],[31,160],[26,160]], C.turq)}${sym([[33,112],[35.5,112],[33.5,160],[31,160]], '#fff')}<path d="M30 118 L70 118" stroke="#1C4A7A" stroke-width="2"/></g>`;
-  if (view === 'front'){
-    out += `<path d="M49 116 L47 125 M51 116 L53 125" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/>`;
-    out += `<circle cx="${fem ? 59 : 60}" cy="${fem ? 132 : 146}" r="3" fill="${C.gold}" stroke="#fff" stroke-width=".7"/>`;
-  }
-  return out;
-}
-function figSVG(p, view){
-  const F = p.g === 'F', N = !p.g, back = view === 'back';
-  const skin = N ? C.ghostSkin : C.skin;
-  const lw = F ? 10 : 11;
-  let s = `<g stroke="${skin}" stroke-linecap="round" stroke-width="${lw}"><line x1="43.5" y1="122" x2="42" y2="191"/><line x1="56.5" y1="122" x2="58" y2="191"/></g>`;
-  s += `<path d="${F ? 'M35 50 Q50 46 65 50 L64 86 Q61 100 64 118 L36 118 Q39 100 36 86 Z' : 'M32 50 Q50 46 68 50 L66 88 L63 118 L37 118 L34 88 Z'}" fill="${skin}"/>`;
-  s += `<rect x="45" y="35" width="10" height="16" rx="3" fill="${skin}"/>`;
-  s += shortSVG(p, view);
-  s += `<g stroke="${skin}" stroke-linecap="round" stroke-width="${F ? 7.5 : 9}"><line x1="${F ? 36 : 33}" y1="55" x2="${F ? 26 : 22}" y2="112"/><line x1="${F ? 64 : 67}" y1="55" x2="${F ? 74 : 78}" y2="112"/></g>`;
-  s += topSVG(p, view);
-  if (F && !back) s += `<path d="M58 16 Q76 20 69 46 Q67 32 56 22Z" fill="${C.hair}"/>`;
-  s += `<circle cx="50" cy="26" r="13" fill="${skin}"/>`;
-  if (!N){
-    if (back){
-      s += `<circle cx="50" cy="25.5" r="13.3" fill="${C.hair}"/>`;
-      if (F) s += `<path d="M46 26 Q43 46 50 54 Q57 46 54 26Z" fill="${C.hair}"/>`;
-    } else {
-      s += F ? `<path d="M36.5 25 Q37 11 50 11 Q64 11 63.5 25 Q60 16 50 17 Q41 17 36.5 25Z" fill="${C.hair}"/>`
-             : `<path d="M37 23 Q38 12 50 12 Q62 12 63 23 Q58 17 50 17.5 Q42 17 37 23Z" fill="${C.hair}"/>`;
-      s += `<circle cx="45.5" cy="27" r="1.2" fill="${C.navy}"/><circle cx="54.5" cy="27" r="1.2" fill="${C.navy}"/><path d="M47 32 Q50 34.2 53 32" fill="none" stroke="${C.navy}" stroke-width=".9" stroke-linecap="round"/>`;
-    }
-  }
-  return `<g>${s}</g>`;
-}
-const pvSVG = (p, view) => `<svg viewBox="8 4 84 196" aria-hidden="true">${figSVG(p, view)}</svg>`;
-
-/* ===== Quadra ===== */
-function renderCourt(){
-  const P = S.players, n = P.length, nearK = Math.ceil(n / 2), farK = n - nearK;
-  const view = (S.step === 4 && !S.done) ? 'back' : 'front';
-  const flip = view !== lastView;
-  const showSel = !S.done && S.step >= 2 && S.step <= 4;
-  const pos = (k, j, base, x0, x1, maxS) => { const sp = (x1 - x0) / k; return { cx: x0 + sp * (j + .5), base, s: Math.min(maxS, sp / 66) }; };
-  const one = (p, i, o) => {
-    const cls = !seen.has(p.id) ? 'enter' : flip ? 'flip' : flash.has(p.id) ? 'pop' : '';
-    const sel = showSel && i === S.sel;
-    const label = p.name || String(i + 1);
-    return `<g class="fig" data-fig="${i}" tabindex="0" role="button" aria-label="Jogador ${i + 1}">
-      <ellipse cx="${o.cx}" cy="${o.base}" rx="${30 * o.s}" ry="${6 * o.s}" fill="rgba(11,45,80,.10)"/>
-      ${sel ? `<ellipse class="ring" cx="${o.cx}" cy="${o.base}" rx="${40 * o.s}" ry="${10 * o.s}" fill="none" stroke="${C.turq}" stroke-width="3"/>` : ''}
-      <g transform="translate(${o.cx - 50 * o.s} ${o.base - 196 * o.s}) scale(${o.s})"><g class="in ${cls}">${figSVG(p, view)}</g></g>
-      <text x="${o.cx}" y="${o.base + 12 * o.s + 10}" text-anchor="middle" class="lbl" font-size="${Math.round(14 * o.s + 5)}">${esc(label)}</text></g>`;
-  };
-  let far = '', near = '';
-  P.forEach((p, i) => {
-    if (i < nearK) near += one(p, i, pos(nearK, i, 358, 70, 570, .78));
-    else far += one(p, i, pos(farK, i - nearK, 180, 165, 475, .5));
-  });
-  let mesh = '';
-  for (let x = 113; x < 530; x += 12) mesh += `M${x} 130 V172 `;
-  for (let y = 138; y < 172; y += 8) mesh += `M107 ${y} H533 `;
-  const t = total();
-  const f = femCount(), m = n - f;
-  const sub = S.step >= 1 ? `${f} feminino${f !== 1 ? 's' : ''}, ${m} masculino${m !== 1 ? 's' : ''}` : '';
-  $('court').innerHTML = `<svg viewBox="0 0 640 400" role="img" aria-label="Quadra de vôlei de areia com ${n} jogadores">
-    <path d="M190 80 L450 80 L610 388 L30 388 Z" fill="#F8EFDB" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
-    <line x1="125" y1="205" x2="515" y2="205" stroke="#fff" stroke-width="3"/>
-    ${far}
-    <rect x="104" y="116" width="6" height="94" rx="3" fill="${C.navy}"/><rect x="530" y="116" width="6" height="94" rx="3" fill="${C.navy}"/>
-    <path d="${mesh}" stroke="${C.navy}" stroke-opacity=".22" stroke-width=".8"/>
-    <rect x="107" y="122" width="426" height="8" fill="#fff" stroke="${C.navy}" stroke-width="1.5"/>
-    <rect x="107" y="172" width="426" height="4" fill="#fff" stroke="${C.navy}" stroke-width="1"/>
-    ${near}
-    <text x="24" y="40" class="ct">${n} ${n > 1 ? 'kits' : 'kit'}</text>
-    ${sub ? `<text x="24" y="60" class="cs">${sub}</text>` : ''}
-    ${t > 0 ? `<text x="616" y="40" text-anchor="end" class="ct">${brl(t)}</text><text x="616" y="60" text-anchor="end" class="cs">total parcial</text>` : ''}
-  </svg>`;
-  P.forEach(p => seen.add(p.id));
-  flash.clear();
-  lastView = view;
-}
-
-/* ===== Painel ===== */
-const head = (t, l) => `<div class="kicker">Etapa ${S.step + 1} de 6</div><h1>${t}</h1><p class="lead">${l}</p>`;
-function chips(fn){
-  return `<div class="chips" role="tablist">${S.players.map((p, i) =>
-    `<button class="chip ${p.g} ${i === S.sel ? 'on' : ''} ${fn(p) ? 'ok' : ''}" data-act="sel" data-v="${i}" role="tab" aria-selected="${i === S.sel}"><span class="g">${p.g}</span>${p.name ? esc(p.name) : 'Jogador ' + (i + 1)}</button>`).join('')}</div>`;
-}
-function pinfo(p, i, view){
-  const pr = price(p);
-  return `<div class="phead">${pvSVG(p, view)}<div><div class="pname">Jogador ${i + 1}</div><div class="mut">${p.g === 'F' ? 'Feminino' : 'Masculino'}${p.line ? ', linha ' + PRICES[p.line].nome : ''}</div>
-    <div class="pprice">${pr ? brl(pr) : '—'}</div><div class="mut">${p.top && p.short ? tipo(p) : 'Escolha as peças'}</div></div></div>`;
-}
-
-function step0(){
-  return head('Quantos kits?', 'Cada kit aparece como um jogador na quadra. Dá para pedir até 12 de uma vez.') +
-    `<div class="stepper"><button data-act="n" data-v="-1" aria-label="Menos um kit">−</button><div class="val" aria-live="polite">${S.players.length}</div><button data-act="n" data-v="1" aria-label="Mais um kit">+</button></div>`;
-}
-function step1(){
-  const f = femCount(), m = S.players.length - f;
-  return head('Quantos são femininos?', 'O restante fica masculino. Na quadra, toque em um jogador para trocar.') +
-    `<div class="stepper"><button data-act="fem" data-v="-1" aria-label="Menos um feminino">−</button><div class="val" aria-live="polite">${f}</div><button data-act="fem" data-v="1" aria-label="Mais um feminino">+</button></div>
-    <div class="split"><div><b>${f}</b>feminino${f !== 1 ? 's' : ''}</div><div><b>${m}</b>masculino${m !== 1 ? 's' : ''}</div></div>`;
-}
-function step2(){
-  const i = S.sel, p = S.players[i];
-  const tops = p.g === 'F' ? ['cropped','camiseta','regata'] : ['camiseta','regata'];
-  const shorts = p.g === 'F' ? ['fem','masc','none'] : ['masc','none'];
-  const lineOpts = Object.entries(PRICES).map(([k, L]) =>
-    `<button class="opt ${p.line === k ? 'on' : ''}" data-act="line" data-v="${k}"><b><span class="sw" style="background:${L.cor}"></span>Linha ${L.nome}</b>
-     <small>Parte de cima ${brl(L.top)}<br>Short ${brl(L.short)}<br>Kit ${brl(L.kit)}</small></button>`).join('');
-  const topOpts = tops.map(k =>
-    `<button class="opt ${p.top === k ? 'on' : ''}" data-act="top" data-v="${k}"><svg viewBox="12 40 76 86" aria-hidden="true">${topSVG({ g:p.g, top:k, name:'', num:'' }, 'front', true)}</svg><b>${TOPS[k]}</b></button>`).join('');
-  const shortOpts = shorts.map(k =>
-    `<button class="opt ${p.short === k ? 'on' : ''}" data-act="short" data-v="${k}"><svg viewBox="22 108 56 54" aria-hidden="true">${k === 'none'
-      ? `<path d="${SH_PATH.masc}" fill="none" stroke="#C3CCD6" stroke-width="1.5" stroke-dasharray="3 3"/>`
-      : shortSVG({ short:k }, 'front')}</svg><b>${SHORTS[k]}</b></button>`).join('');
-  const all = S.players.length > 1 && done2(p)
-    ? `<div class="group"><button class="linkbtn" data-act="all">Usar estas peças em todos os jogadores</button><div class="hint">Top cropped e short feminino não são aplicados aos masculinos.</div></div>` : '';
-  return head('Escolha as peças', 'Selecione a linha e as peças de cada jogador. Dá para pedir só a parte de cima.') + chips(done2) + pinfo(p, i, 'front') +
-    `<div class="group"><p class="label">Linha</p><div class="opts">${lineOpts}</div></div>
-     <div class="group"><p class="label">Parte de cima</p><div class="opts">${topOpts}</div></div>
-     <div class="group"><p class="label">Short</p><div class="opts">${shortOpts}</div></div>${all}`;
-}
-function step3(){
-  const i = S.sel, p = S.players[i], L = PRICES[p.line];
-  const sz = (act, cur) => `<div class="sizes">${SIZES.map(z => `<button class="size ${cur === z ? 'on' : ''}" data-act="${act}" data-v="${z}">${z}</button>`).join('')}</div>`;
-  return head('Tamanhos', 'Escolha o tamanho de cada peça, de PP a XG.') + chips(done3) + pinfo(p, i, 'front') +
-    `<div class="group"><p class="label">${TOPS[p.top]}, linha ${L.nome}</p>${sz('tsize', p.topSize)}</div>` +
-    (p.short !== 'none' ? `<div class="group"><p class="label">${SHORTS[p.short]}, linha ${L.nome}</p>${sz('ssize', p.shortSize)}</div>` : '');
-}
-function step4(){
-  const i = S.sel, p = S.players[i];
-  const rows = S.players.map((q, j) =>
-    `<div class="namerow ${j === S.sel ? 'on' : ''}" data-row="${j}"><span class="g">${j + 1}</span>
-     <input class="name" data-name="${j}" maxlength="12" placeholder="Nome" value="${esc(q.name)}" autocomplete="off" aria-label="Nome do jogador ${j + 1}">
-     <input class="num" data-num="${j}" inputmode="numeric" maxlength="2" placeholder="Nº" value="${esc(q.num)}" autocomplete="off" aria-label="Número do jogador ${j + 1}"></div>`).join('');
-  return head('Nome e número', 'Aparecem nas costas da parte de cima. Até 12 letras e número de 0 a 99. Pode deixar em branco.') +
-    `<div class="phead" id="pv">${pvSVG(p, 'back')}<div><div class="pname" id="pvname">Jogador ${i + 1}</div><div class="mut">Vista de costas</div></div></div>
-     <div class="namerows">${rows}</div>`;
-}
-function step5(){
-  const P = S.players;
-  const rows = P.map((p, i) => `<tr><td>${i + 1} <span class="mut">${p.g}</span></td>
-    <td>${p.name ? esc(p.name) : '<span class="mut">—</span>'} ${p.num ? '<b>' + p.num.padStart(2, '0') + '</b>' : ''}</td>
-    <td>${PRICES[p.line].nome}</td><td>${TOPS[p.top]} <b>${p.topSize}</b></td>
-    <td>${p.short === 'none' ? '<span class="mut">—</span>' : SHORTS[p.short] + ' <b>' + p.shortSize + '</b>'}</td>
-    <td>${tipo(p)}</td><td class="v">${brl(price(p))}</td></tr>`).join('');
-  const agg = new Map();
-  const add = k => agg.set(k, (agg.get(k) || 0) + 1);
-  P.forEach(p => { const L = PRICES[p.line].nome; add(`${TOPS[p.top]}|${L}|${p.topSize}`); if (p.short !== 'none') add(`${SHORTS[p.short]}|${L}|${p.shortSize}`); });
-  const aggRows = [...agg.entries()].sort().map(([k, q]) => { const [a, b, c] = k.split('|'); return `<tr><td>${a}</td><td>${b}</td><td>${c}</td><td class="v">${q}</td></tr>`; }).join('');
-  return head('Confira o pedido', 'Revise os itens e escreva seu nome para enviar.') +
-    `<div class="group"><label class="label" for="resp" style="display:block">Nome completo do responsável <span class="req">*</span></label>
-     <input id="resp" class="${S.respBad ? 'bad' : ''}" value="${esc(S.resp)}" placeholder="Nome e sobrenome" autocomplete="name" required aria-required="true" aria-invalid="${S.respBad}" aria-describedby="resperr">
-     <div class="ferr" id="resperr">${S.respBad ? 'Escreva nome e sobrenome, só com letras.' : ''}</div></div>
-     <div class="edits"><button class="linkbtn" data-act="goto" data-v="2">Alterar peças</button><button class="linkbtn" data-act="goto" data-v="3">Alterar tamanhos</button><button class="linkbtn" data-act="goto" data-v="4">Alterar nomes</button></div>
-     <p class="label">Por jogador</p>
-     <div class="tbl"><table><thead><tr><th>Jogador</th><th>Nome e nº</th><th>Linha</th><th>Parte de cima</th><th>Short</th><th>Tipo</th><th class="v">Valor</th></tr></thead><tbody>${rows}</tbody></table></div>
-     <p class="label">Quantidade por peça</p>
-     <div class="tbl small-tbl"><table><thead><tr><th>Peça</th><th>Linha</th><th>Tamanho</th><th class="v">Qtd.</th></tr></thead><tbody>${aggRows}</tbody></table></div>
-     <div class="total"><span class="mut">Total do pedido</span><b>${brl(total())}</b></div>`;
-}
-function doneView(){
-  const d = S.done, first = S.resp.trim().split(/\s+/)[0] || '';
-  return `<div class="kicker">Pedido enviado</div><h1>Obrigado${first ? ', ' + esc(first) : ''}!</h1>
-    <p class="lead">O pedido <b>${d.id}</b> com ${S.players.length} ${S.players.length > 1 ? 'kits' : 'kit'} foi registrado. Total de ${brl(d.total)}.</p>
-    ${d.demo ? '<p class="note">Modo de teste: o pedido não foi salvo porque o endereço da planilha ainda não foi configurado no site.</p>' : ''}
-    <div class="nav"><span></span><button class="btn pri" data-act="new">Fazer outro pedido</button></div>`;
-}
-function renderPanel(){
-  const body = S.done ? doneView() : [step0, step1, step2, step3, step4, step5][S.step]();
-  const nav = S.done ? '' : `<div class="err" role="alert">${esc(S.err)}</div><div class="nav">
-    ${S.step > 0 ? '<button class="btn ghost" data-act="back">Voltar</button>' : '<span></span>'}
-    <button class="btn pri" data-act="next" ${S.sending ? 'disabled' : ''}>${S.step === 5 ? (S.sending ? 'Enviando…' : 'Enviar pedido') : 'Continuar'}</button></div>`;
-  $('panel').innerHTML = `<div class="pane ${S.anim ? (S.dir < 0 ? 'l' : 'r') : ''}">${body}${nav}</div>`;
-  S.anim = false;
-}
-function renderProg(){
-  $('prog').innerHTML = STEPS.map((t, i) => {
-    const cls = S.done || i < S.step ? 'done' : i === S.step ? 'cur' : '';
-    return `<div class="seg ${cls}"><div class="bar"><i></i></div><span>${i + 1}. ${t}</span></div>`;
-  }).join('');
-}
-function render(){ renderProg(); renderCourt(); renderPanel(); }
-function updateLive(){
-  const p = S.players[S.sel], pv = $('pv');
-  if (pv){ pv.querySelector('svg').outerHTML = pvSVG(p, 'back'); $('pvname').textContent = 'Jogador ' + (S.sel + 1); }
-  document.querySelectorAll('.namerow').forEach(r => r.classList.toggle('on', +r.dataset.row === S.sel));
-}
-
-/* ===== Navegação ===== */
-function validate(step){
-  const P = S.players;
-  if (step === 2){
-    const i = P.findIndex(p => !done2(p));
-    if (i >= 0){ const p = P[i]; return { i, msg:`Falta escolher ${!p.line ? 'a linha' : !p.top ? 'a parte de cima' : 'o short'} do jogador ${i + 1}.` }; }
-  }
-  if (step === 3){
-    const i = P.findIndex(p => !done3(p));
-    if (i >= 0) return { i, msg:`Falta o tamanho ${!P[i].topSize ? 'da parte de cima' : 'do short'} do jogador ${i + 1}.` };
-  }
-  if (step === 5 && !validResp(S.resp)) return { resp:true, msg:'Falta o nome completo do responsável para enviar o pedido.' };
-  return null;
-}
-function go(s){
-  S.dir = s > S.step ? 1 : -1; S.step = s; S.anim = true; S.err = '';
-  if (s === 1) S.players.forEach(p => { if (!p.g){ p.g = 'M'; flash.add(p.id); } });
-  if (s === 2){ const j = S.players.findIndex(p => !done2(p)); S.sel = j >= 0 ? j : 0; }
-  if (s === 3){ const j = S.players.findIndex(p => !done3(p)); S.sel = j >= 0 ? j : 0; }
-  render();
-}
-function next(){
-  const e = validate(S.step);
-  if (e){ if (e.i != null) S.sel = e.i; S.respBad = !!e.resp; render(); S.err = e.msg; renderPanel();
-    if (e.resp){ const r = $('resp'); r.focus(); if (r.scrollIntoView) r.scrollIntoView({ block:'center', behavior:'smooth' }); } return; }
-  if (S.step === 5) send(); else go(S.step + 1);
-}
-function autoNext(fn){
-  const cur = S.sel;
-  const j = S.players.findIndex((q, i) => i !== cur && !fn(q));
-  if (j >= 0) setTimeout(() => { if (S.sel === cur){ S.sel = j; render(); } }, 550);
-}
-function applyAll(){
-  const src = S.players[S.sel];
-  S.players.forEach(q => {
-    if (q === src) return;
-    q.line = src.line;
-    if (!(q.g === 'M' && src.top === 'cropped')) q.top = src.top;
-    if (!(q.g === 'M' && src.short === 'fem')) q.short = src.short;
-    flash.add(q.id);
-  });
-}
-function reset(){
-  S.players = []; seen.clear(); S.step = 0; S.sel = 0; S.resp = ''; S.respBad = false; S.done = null; S.err = ''; S.dir = 1; S.anim = true;
-  setN(2); render();
-}
-function buildPayload(){
-  const now = new Date(), pad = x => String(x).padStart(2, '0');
-  const id = 'VF-' + String(now.getFullYear()).slice(2) + pad(now.getMonth() + 1) + pad(now.getDate()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-  return {
-    pedidoId:id, dataHora:now.toISOString(), responsavel:S.resp.trim(), total:+total().toFixed(2),
-    itens:S.players.map((p, i) => ({
-      jogador:i + 1, genero:p.g === 'F' ? 'Feminino' : 'Masculino', linha:PRICES[p.line].nome,
-      pecaCima:TOPS[p.top], tamanhoCima:p.topSize,
-      short:p.short === 'none' ? '' : SHORTS[p.short], tamanhoShort:p.short === 'none' ? '' : p.shortSize,
-      tipo:tipo(p), nomeCamisa:p.name, numeroCamisa:p.num ? p.num.padStart(2, '0') : '', valor:price(p)
-    }))
-  };
-}
-async function send(){
-  if (!validResp(S.resp)) return;
-  S.sending = true; renderPanel();
-  const payload = buildPayload();
-  try{
-    if (SCRIPT_URL){
-      await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
-    } else {
-      await new Promise(r => setTimeout(r, 700));
-      console.log('Pedido (modo de teste):', payload);
-    }
-    S.done = { id:payload.pedidoId, total:payload.total, demo:!SCRIPT_URL };
-    S.anim = true; S.dir = 1;
-    S.players.forEach(p => flash.add(p.id));
-  } catch (err){
-    S.err = 'Não foi possível enviar o pedido. Confira a conexão e toque em Enviar pedido de novo.';
-  }
-  S.sending = false; render();
-}
-
-/* ===== Eventos ===== */
-function onFig(i){
-  if (S.done) return;
-  if (S.step === 1){
-    const p = S.players[i]; p.g = p.g === 'F' ? 'M' : 'F'; sanitize(p); flash.add(p.id); render(); return;
-  }
-  if (S.step >= 2){
-    S.sel = i;
-    if (S.step === 4){ renderCourt(); updateLive(); const inp = document.querySelector(`[data-name="${i}"]`); if (inp) inp.focus(); return; }
-    render();
-  }
-}
-document.addEventListener('click', e => {
-  const f = e.target.closest('[data-fig]');
-  if (f){ onFig(+f.dataset.fig); return; }
-  const b = e.target.closest('[data-act]');
-  if (!b) return;
-  const a = b.dataset.act, v = b.dataset.v, p = S.players[S.sel];
-  S.err = '';
-  switch (a){
-    case 'n': setN(S.players.length + +v); break;
-    case 'fem': setFem(Math.max(0, Math.min(S.players.length, femCount() + +v))); break;
-    case 'sel': S.sel = +v; break;
-    case 'line': case 'top': case 'short': {
-      const was = done2(p); p[a] = v; flash.add(p.id);
-      if (!was && done2(p)) autoNext(done2);
-      break;
-    }
-    case 'tsize': case 'ssize': {
-      const was = done3(p); if (a === 'tsize') p.topSize = v; else p.shortSize = v; flash.add(p.id);
-      if (!was && done3(p)) autoNext(done3);
-      break;
-    }
-    case 'all': applyAll(); break;
-    case 'goto': go(+v); return;
-    case 'next': next(); return;
-    case 'back': go(S.step - 1); return;
-    case 'new': reset(); return;
-  }
-  render();
-});
-document.addEventListener('keydown', e => {
-  const f = e.target.closest && e.target.closest('[data-fig]');
-  if (f && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); onFig(+f.dataset.fig); }
-  if (e.target.id === 'resp' && e.key === 'Enter') next();
-});
-document.addEventListener('input', e => {
-  const t = e.target;
-  if (t.dataset.name != null){
-    const i = +t.dataset.name, v = t.value.toUpperCase().replace(/[^A-ZÀ-ÖØ-Ý0-9 .'-]/g, '').slice(0, 12);
-    if (t.value !== v) t.value = v;
-    S.players[i].name = v; S.sel = i; renderCourt(); updateLive();
-  } else if (t.dataset.num != null){
-    const i = +t.dataset.num, v = t.value.replace(/\D/g, '').slice(0, 2);
-    if (t.value !== v) t.value = v;
-    S.players[i].num = v; S.sel = i; renderCourt(); updateLive();
-  } else if (t.id === 'resp'){
-    S.resp = t.value;
-    if (S.respBad && validResp(S.resp)){ S.respBad = false; t.classList.remove('bad'); t.setAttribute('aria-invalid', 'false'); $('resperr').textContent = ''; }
-  }
-});
-document.addEventListener('focusin', e => {
-  const t = e.target, i = t.dataset && (t.dataset.name ?? t.dataset.num);
-  if (i != null && S.step === 4 && +i !== S.sel){ S.sel = +i; renderCourt(); updateLive(); }
-});
-
-setN(2);
-render();
-</script>
+<script type="module" src="js/intro.js"></script>
 </body>
 </html>
