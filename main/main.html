@@ -95,6 +95,9 @@ td.v,th.v{text-align:right;font-variant-numeric:tabular-nums}
 .btn.pri:hover{background:#133F6D}
 .btn.ghost{background:none;color:var(--muted);padding-left:0}
 .btn:disabled{opacity:.55;cursor:default}
+input.bad{border-color:#B42318;box-shadow:0 0 0 3px #FDE4E1}
+.ferr{color:#B42318;font-size:14px;margin-top:6px}
+.req{color:#B42318}
 .err{color:#B42318;font-size:14px;margin-top:14px;min-height:1.3em}
 .note{font-size:14px;background:#F4F7FA;border-radius:12px;padding:12px 14px;color:var(--muted);max-width:52ch}
 button:focus-visible,.fig:focus-visible{outline:2px solid var(--turq);outline-offset:2px}
@@ -154,7 +157,7 @@ const STEPS  = ['Quantidade','Gênero','Peças','Tamanhos','Nome e número','Con
 
 /* ===== Estado ===== */
 const C = { navy:'#0B2D50', turq:'#00B4C7', light:'#7FDCE6', gold:'#E3A83B', skin:'#E2B08A', hair:'#3A2A22', ghost:'#DCE3EA', ghostSkin:'#C9D3DD' };
-const S = { step:0, players:[], sel:0, resp:'', err:'', anim:true, dir:1, done:null, sending:false };
+const S = { step:0, players:[], sel:0, resp:'', err:'', anim:true, dir:1, done:null, sending:false, respBad:false };
 const seen = new Set(), flash = new Set();
 let lastView = 'front', uidc = 0;
 const uid = () => 'k' + (++uidc);
@@ -187,6 +190,8 @@ function price(p){
 const total = () => S.players.reduce((a,p) => a + price(p), 0);
 const done2 = p => !!(p.line && p.top && p.short);
 const done3 = p => !!(p.topSize && (p.short === 'none' || p.shortSize));
+const validResp = v => { const t = v.trim(), parts = t.split(/\s+/).filter(Boolean);
+  return t.length >= 5 && parts.length >= 2 && parts.every(w => /^\p{L}[\p{L}'.-]*$/u.test(w)); };
 const tipo  = p => p.short === 'none' ? 'Só parte de cima' : 'Kit completo';
 
 /* ===== Desenho do jogador (SVG em camadas) ===== */
@@ -389,7 +394,9 @@ function step5(){
   P.forEach(p => { const L = PRICES[p.line].nome; add(`${TOPS[p.top]}|${L}|${p.topSize}`); if (p.short !== 'none') add(`${SHORTS[p.short]}|${L}|${p.shortSize}`); });
   const aggRows = [...agg.entries()].sort().map(([k, q]) => { const [a, b, c] = k.split('|'); return `<tr><td>${a}</td><td>${b}</td><td>${c}</td><td class="v">${q}</td></tr>`; }).join('');
   return head('Confira o pedido', 'Revise os itens e escreva seu nome para enviar.') +
-    `<div class="group"><p class="label">Seu nome completo</p><input id="resp" value="${esc(S.resp)}" placeholder="Nome e sobrenome" autocomplete="name"></div>
+    `<div class="group"><label class="label" for="resp" style="display:block">Nome completo do responsável <span class="req">*</span></label>
+     <input id="resp" class="${S.respBad ? 'bad' : ''}" value="${esc(S.resp)}" placeholder="Nome e sobrenome" autocomplete="name" required aria-required="true" aria-invalid="${S.respBad}" aria-describedby="resperr">
+     <div class="ferr" id="resperr">${S.respBad ? 'Escreva nome e sobrenome, só com letras.' : ''}</div></div>
      <div class="edits"><button class="linkbtn" data-act="goto" data-v="2">Alterar peças</button><button class="linkbtn" data-act="goto" data-v="3">Alterar tamanhos</button><button class="linkbtn" data-act="goto" data-v="4">Alterar nomes</button></div>
      <p class="label">Por jogador</p>
      <div class="tbl"><table><thead><tr><th>Jogador</th><th>Nome e nº</th><th>Linha</th><th>Parte de cima</th><th>Short</th><th>Tipo</th><th class="v">Valor</th></tr></thead><tbody>${rows}</tbody></table></div>
@@ -436,7 +443,7 @@ function validate(step){
     const i = P.findIndex(p => !done3(p));
     if (i >= 0) return { i, msg:`Falta o tamanho ${!P[i].topSize ? 'da parte de cima' : 'do short'} do jogador ${i + 1}.` };
   }
-  if (step === 5 && !S.resp.trim()) return { msg:'Escreva seu nome completo para enviar o pedido.' };
+  if (step === 5 && !validResp(S.resp)) return { resp:true, msg:'Falta o nome completo do responsável para enviar o pedido.' };
   return null;
 }
 function go(s){
@@ -448,7 +455,8 @@ function go(s){
 }
 function next(){
   const e = validate(S.step);
-  if (e){ if (e.i != null) S.sel = e.i; render(); S.err = e.msg; renderPanel(); return; }
+  if (e){ if (e.i != null) S.sel = e.i; S.respBad = !!e.resp; render(); S.err = e.msg; renderPanel();
+    if (e.resp){ const r = $('resp'); r.focus(); if (r.scrollIntoView) r.scrollIntoView({ block:'center', behavior:'smooth' }); } return; }
   if (S.step === 5) send(); else go(S.step + 1);
 }
 function autoNext(fn){
@@ -467,7 +475,7 @@ function applyAll(){
   });
 }
 function reset(){
-  S.players = []; seen.clear(); S.step = 0; S.sel = 0; S.resp = ''; S.done = null; S.err = ''; S.dir = 1; S.anim = true;
+  S.players = []; seen.clear(); S.step = 0; S.sel = 0; S.resp = ''; S.respBad = false; S.done = null; S.err = ''; S.dir = 1; S.anim = true;
   setN(2); render();
 }
 function buildPayload(){
@@ -484,6 +492,7 @@ function buildPayload(){
   };
 }
 async function send(){
+  if (!validResp(S.resp)) return;
   S.sending = true; renderPanel();
   const payload = buildPayload();
   try{
@@ -560,6 +569,7 @@ document.addEventListener('input', e => {
     S.players[i].num = v; S.sel = i; renderCourt(); updateLive();
   } else if (t.id === 'resp'){
     S.resp = t.value;
+    if (S.respBad && validResp(S.resp)){ S.respBad = false; t.classList.remove('bad'); t.setAttribute('aria-invalid', 'false'); $('resperr').textContent = ''; }
   }
 });
 document.addEventListener('focusin', e => {
