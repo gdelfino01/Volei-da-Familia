@@ -19,12 +19,15 @@ js/
   court.js        Quadra com os jogadores
   views.js        HTML de cada etapa
   api.js          Montagem e envio do pedido ao Google Apps Script
+  pix.js          Valor da 1ª parcela e Pix copia e cola
   pedido.js       Entrada da página de pedido: navegação e eventos
   intro.js        Entrada da introdução: abas dos modelos e preços
 assets/img/       Escudo e imagens dos uniformes
+assets/email/     Versões em JPG usadas no e-mail de confirmação
+apps-script/      Código do Google Apps Script (planilha + e-mail). Fica só na máquina local (está no .gitignore); veja o LEIAME.md
 ```
 
-Preços e a URL da planilha ficam só em `js/config.js`; a introdução e o pedido leem de lá.
+Preços, dados do Pix e a URL da planilha ficam só em `js/config.js`; a introdução e o pedido leem de lá.
 
 ## Rodar localmente
 

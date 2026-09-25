@@ -1,0 +1,17 @@
+# Código do Google Apps Script: fica só nesta máquina (tem a chave Pix e o e-mail da organização)
+apps-script/
+
+# Configurações locais do Claude Code / editor
+.claude/
+.vscode/
+.idea/
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Arquivos temporários
+*.tmp
+*.log
+_*.html

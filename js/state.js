@@ -2,7 +2,7 @@ import { MAXN, PRICES } from './config.js';
 import { uid } from './utils.js';
 
 /* ===== Estado do pedido ===== */
-export const S = { step:0, players:[], sel:0, resp:'', err:'', anim:true, dir:1, done:null, sending:false, respBad:false };
+export const S = { step:0, players:[], sel:0, resp:'', email:'', err:'', anim:true, dir:1, done:null, sending:false, respBad:false, emailBad:false };
 export const seen = new Set();   // jogadores que já apareceram na quadra
 export const flash = new Set();  // jogadores que mudaram e devem pular na próxima renderização
 
@@ -39,4 +39,6 @@ export const done2 = p => !!(p.line && p.top && p.short);
 export const done3 = p => !!(p.topSize && (p.short === 'none' || p.shortSize));
 export const validResp = v => { const t = v.trim(), parts = t.split(/\s+/).filter(Boolean);
   return t.length >= 5 && parts.length >= 2 && parts.every(w => /^\p{L}[\p{L}'.-]*$/u.test(w)); };
+/* E-mail é opcional: vazio é válido */
+export const validEmail = v => !v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 export const tipo = p => p.short === 'none' ? 'Só parte de cima' : 'Kit completo';

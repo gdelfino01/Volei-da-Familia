@@ -2,11 +2,11 @@ import { SCRIPT_URL, PRICES, TOPS, SHORTS } from './config.js';
 import { price, tipo, total } from './state.js';
 
 /* ===== Envio do pedido para a planilha (Google Apps Script) ===== */
-export function buildPayload(players, resp){
+export function buildPayload(players, resp, email){
   const now = new Date(), pad = x => String(x).padStart(2, '0');
   const id = 'VF-' + String(now.getFullYear()).slice(2) + pad(now.getMonth() + 1) + pad(now.getDate()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
   return {
-    pedidoId:id, dataHora:now.toISOString(), responsavel:resp.trim(), total:+total().toFixed(2),
+    pedidoId:id, dataHora:now.toISOString(), responsavel:resp.trim(), email:email.trim(), total:+total().toFixed(2),
     itens:players.map((p, i) => ({
       jogador:i + 1, genero:p.g === 'F' ? 'Feminino' : 'Masculino', linha:PRICES[p.line].nome,
       pecaCima:TOPS[p.top], tamanhoCima:p.topSize,

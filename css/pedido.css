@@ -93,6 +93,18 @@ td.v,th.v{text-align:right;font-variant-numeric:tabular-nums}
 .total b{font:700 38px "Barlow Condensed",sans-serif}
 .edits{display:flex;gap:6px 16px;flex-wrap:wrap;margin-bottom:14px}
 .note{font-size:14px;background:#F4F7FA;border-radius:12px;padding:12px 14px;color:var(--muted);max-width:52ch}
+.sinal{display:flex;justify-content:space-between;align-items:baseline;gap:12px;background:var(--turq-soft);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:15px}
+.sinal b{font:700 24px "Barlow Condensed",sans-serif;white-space:nowrap}
+
+/* Pagamento (tela final) */
+.paybox{border:1.5px solid var(--turq);background:var(--turq-soft);border-radius:18px;padding:16px 18px;margin:0 0 16px}
+.payrow,.pixrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0}
+.payrow b{font:700 32px "Barlow Condensed",sans-serif;white-space:nowrap}
+.pixrow{border-top:1px solid #BFE9EE;font-size:15px}
+.pixrow b{word-break:break-all;text-align:right}
+.copia{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
+.copia code{flex:1;min-width:0;font-size:12px;line-height:1.4;word-break:break-all;color:var(--ink);max-height:3.2em;overflow:hidden}
+.note{margin:0 0 12px}
 
 /* Barra de navegação */
 .navbar{margin-top:26px}

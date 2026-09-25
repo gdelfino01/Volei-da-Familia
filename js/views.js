@@ -1,4 +1,4 @@
-import { PRICES, TOPS, SHORTS, SIZES, STEPS } from './config.js';
+import { PRICES, TOPS, SHORTS, SIZES, STEPS, SINAL } from './config.js';
 import { S, femCount, price, total, done2, done3, tipo, single } from './state.js';
 import { topSVG, shortSVG, pvSVG, SH_PATH } from './figure.js';
 import { esc, brl } from './utils.js';
@@ -103,17 +103,35 @@ function step5(){
     `<div class="group"><label class="label" for="resp" style="display:block">Nome completo do responsável <span class="req">*</span></label>
      <input id="resp" class="${S.respBad ? 'bad' : ''}" value="${esc(S.resp)}" placeholder="Nome e sobrenome" autocomplete="name" required aria-required="true" aria-invalid="${S.respBad}" aria-describedby="resperr">
      <div class="ferr" id="resperr">${S.respBad ? 'Escreva nome e sobrenome, só com letras.' : ''}</div></div>
+     <div class="group"><label class="label" for="email" style="display:block">E-mail <span class="mut" style="font-weight:400">(opcional)</span></label>
+     <input id="email" type="email" inputmode="email" class="${S.emailBad ? 'bad' : ''}" value="${esc(S.email)}" placeholder="voce@exemplo.com" autocomplete="email" aria-invalid="${S.emailBad}" aria-describedby="emailhint emailerr">
+     <div class="hint" id="emailhint">Se preencher, você recebe a confirmação do pedido com os dados do Pix.</div>
+     <div class="ferr" id="emailerr">${S.emailBad ? 'Confira o e-mail. Se não quiser receber, deixe em branco.' : ''}</div></div>
      <div class="edits"><button class="linkbtn" data-act="goto" data-v="2">Alterar peças</button><button class="linkbtn" data-act="goto" data-v="3">Alterar tamanhos</button><button class="linkbtn" data-act="goto" data-v="4">Alterar nome e número</button></div>
      ${P.length > 1 ? '<p class="label">Por jogador</p>' : ''}
      <ul class="items">${items}</ul>
      ${agg}
-     <div class="total"><span class="mut">Total do pedido</span><b>${brl(total())}</b></div>`;
+     <div class="total"><span class="mut">Total do pedido</span><b>${brl(total())}</b></div>
+     <div class="sinal"><span>Primeira parcela (${Math.round(SINAL * 100)}%), via Pix ao fazer o pedido</span><b>${brl(Math.round(total() * SINAL * 100) / 100)}</b></div>`;
 }
 
 export function doneView(){
-  const d = S.done, first = S.resp.trim().split(/\s+/)[0] || '', n = S.players.length;
+  const d = S.done, pg = d.pagamento, first = S.resp.trim().split(/\s+/)[0] || '', n = S.players.length;
+  const pix = pg.pixChave
+    ? `<div class="pixrow"><span>Chave Pix</span><b>${esc(pg.pixChave)}</b></div>
+       ${pg.pixNome ? `<div class="pixrow"><span>Recebedor</span><b>${esc(pg.pixNome)}</b></div>` : ''}
+       ${pg.pixCopiaECola ? `<p class="label" style="margin:14px 0 6px">Pix copia e cola, já com o valor</p>
+       <div class="copia"><code id="pixcode">${esc(pg.pixCopiaECola)}</code><button class="btn pri sm" data-act="copy">Copiar</button></div>` : ''}`
+    : `<p class="mut" style="margin:6px 0 0">A organização vai enviar a chave Pix para você.</p>`;
   return `<div class="kicker">Pedido enviado</div><h1>Obrigado${first ? ', ' + esc(first) : ''}!</h1>
     <p class="lead">O pedido <b>${d.id}</b> com ${n} ${n > 1 ? 'kits' : 'kit'} foi registrado. Total de ${brl(d.total)}.</p>
+    <div class="paybox">
+      <div class="kicker">Próximo passo</div>
+      <div class="payrow"><span>Primeira parcela (${pg.percentualSinal}%), paga agora</span><b>${brl(pg.sinal)}</b></div>
+      <div class="payrow mut"><span>Segunda parcela</span><span>${brl(pg.restante)}</span></div>
+      ${pix}
+    </div>
+    ${S.email.trim() ? `<p class="note">Enviamos a confirmação para <b>${esc(S.email.trim())}</b>. Se não aparecer em alguns minutos, olhe o spam.</p>` : ''}
     ${d.demo ? '<p class="note">Modo de teste: o pedido não foi salvo porque o endereço da planilha ainda não foi configurado no site.</p>' : ''}
     <div class="nav"><a class="btn ghost" href="./">Ver os uniformes</a><button class="btn pri" data-act="new">Fazer outro pedido</button></div>`;
 }

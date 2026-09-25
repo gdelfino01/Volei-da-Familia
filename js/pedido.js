@@ -1,9 +1,10 @@
 import { STEPS } from './config.js';
-import { S, seen, flash, setN, setFem, sanitize, femCount, total, done2, done3, validResp } from './state.js';
+import { S, seen, flash, setN, setFem, sanitize, femCount, total, done2, done3, validResp, validEmail } from './state.js';
 import { renderCourt } from './court.js';
 import { STEP_VIEWS, doneView } from './views.js';
 import { pvSVG } from './figure.js';
 import { buildPayload, submitOrder } from './api.js';
+import { pagamento } from './pix.js';
 import { esc, brl, $ } from './utils.js';
 
 /* ===== Renderização ===== */
@@ -51,6 +52,7 @@ function validate(step){
     if (i >= 0) return { i, msg:`Falta o tamanho ${!P[i].topSize ? 'da parte de cima' : 'do short'}${P.length > 1 ? ` do jogador ${i + 1}` : ''}.` };
   }
   if (step === 5 && !validResp(S.resp)) return { resp:true, msg:'Falta o nome completo do responsável para enviar o pedido.' };
+  if (step === 5 && !validEmail(S.email)) return { email:true, msg:'O e-mail parece incompleto. Corrija ou deixe em branco.' };
   return null;
 }
 
@@ -72,8 +74,9 @@ function next(){
   const e = validate(S.step);
   if (e){
     if (e.i != null) S.sel = e.i;
-    S.respBad = !!e.resp; render(); S.err = e.msg; renderPanel();
-    if (e.resp){ const r = $('resp'); r.focus(); if (r.scrollIntoView) r.scrollIntoView({ block:'center', behavior:'smooth' }); }
+    S.respBad = !!e.resp; S.emailBad = !!e.email; render(); S.err = e.msg; renderPanel();
+    const bad = e.resp ? $('resp') : e.email ? $('email') : null;
+    if (bad){ bad.focus(); if (bad.scrollIntoView) bad.scrollIntoView({ block:'center', behavior:'smooth' }); }
     return;
   }
   if (S.step === 5) send(); else go(S.step + 1);
@@ -98,17 +101,17 @@ function applyAll(){
 }
 
 function reset(){
-  S.players = []; seen.clear(); S.step = 0; S.sel = 0; S.resp = ''; S.respBad = false; S.done = null; S.err = ''; S.dir = 1; S.anim = true;
+  S.players = []; seen.clear(); S.step = 0; S.sel = 0; S.resp = ''; S.respBad = false; S.email = ''; S.emailBad = false; S.done = null; S.err = ''; S.dir = 1; S.anim = true;
   setN(1); render(); scrollTop();
 }
 
 async function send(){
-  if (!validResp(S.resp)) return;
+  if (!validResp(S.resp) || !validEmail(S.email)) return;
   S.sending = true; renderPanel();
-  const payload = buildPayload(S.players, S.resp);
+  const payload = buildPayload(S.players, S.resp, S.email);
   try{
     const { demo } = await submitOrder(payload);
-    S.done = { id:payload.pedidoId, total:payload.total, demo };
+    S.done = { id:payload.pedidoId, total:payload.total, pagamento:pagamento(payload.total, payload.pedidoId), demo };
     S.anim = true; S.dir = 1;
     S.players.forEach(p => flash.add(p.id));
   } catch (err){
@@ -116,6 +119,14 @@ async function send(){
   }
   S.sending = false; render();
   if (S.done) scrollTop();
+}
+
+/* Copia o Pix copia e cola; se a área de transferência não estiver disponível, seleciona o texto */
+async function copyPix(btn){
+  const code = $('pixcode');
+  try{ await navigator.clipboard.writeText(code.textContent); btn.textContent = 'Copiado'; }
+  catch { const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = 'Selecionado'; }
+  setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
 }
 
 /* ===== Eventos ===== */
@@ -158,6 +169,7 @@ document.addEventListener('click', e => {
     case 'next': next(); return;
     case 'back': go(S.step - 1); return;
     case 'new': reset(); return;
+    case 'copy': copyPix(b); return;
   }
   render();
 });
@@ -165,7 +177,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   const f = e.target.closest && e.target.closest('[data-fig]');
   if (f && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); onFig(+f.dataset.fig); }
-  if (e.target.id === 'resp' && e.key === 'Enter') next();
+  if ((e.target.id === 'resp' || e.target.id === 'email') && e.key === 'Enter') next();
 });
 
 document.addEventListener('input', e => {
@@ -178,6 +190,9 @@ document.addEventListener('input', e => {
     const i = +t.dataset.num, v = t.value.replace(/\D/g, '').slice(0, 2);
     if (t.value !== v) t.value = v;
     S.players[i].num = v; S.sel = i; renderCourt(); updateLive();
+  } else if (t.id === 'email'){
+    S.email = t.value;
+    if (S.emailBad && validEmail(S.email)){ S.emailBad = false; t.classList.remove('bad'); t.setAttribute('aria-invalid', 'false'); $('emailerr').textContent = ''; }
   } else if (t.id === 'resp'){
     S.resp = t.value;
     if (S.respBad && validResp(S.resp)){ S.respBad = false; t.classList.remove('bad'); t.setAttribute('aria-invalid', 'false'); $('resperr').textContent = ''; }
