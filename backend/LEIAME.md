@@ -65,5 +65,21 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
 | `meu_perfil` | `id`, `token` | dados do próprio cadastro |
 | `salvar_presencas` | `pin`, `data`, `jogador_ids` | organizador |
 | `salvar_times` | `pin`, `data`, `times` (`[[id,…],…]`) | organizador |
+| `sincronizar` | `pin`, `data`, `partidas`, `excluir` | organizador: placar em lote (veja abaixo) |
 
 Resposta: `{"ok":true, …}` ou `{"ok":false, "erro":"mensagem"}`.
+
+### Placar (`sincronizar`)
+
+O celular manda cada jogo inteiro: `{id, seq, time_a, time_b, alvo, inicio, fim, lances:[{id, time, jogador_id, tipo, criado_em}]}`.
+- O script substitui o jogo com o mesmo `id` na aba Partidas e todos os lances dele na aba Lances. Reenviar o mesmo lote não duplica nada, e lances desfeitos somem.
+- Os pontos e o vencedor são recalculados no script a partir dos lances.
+- `excluir` é uma lista de ids de jogos a apagar, com os lances.
+- Cada lance é um ponto para `time`, o número do time que pontuou. Os tipos são `ataque`, `bloqueio`, `ace`, `erro` e `erro_adversario`.
+  - Em `erro`, `jogador_id` é quem errou, que é do outro time.
+  - Em `erro_adversario` não há jogador.
+
+## Atualizando da fase 1 para a fase 2
+
+Cole o `Code.gs` e o `Setup.gs` novos, rode `configurarPlanilha` de novo e publique uma **nova versão**.
+Isso marca como texto as colunas de data e hora das abas Partidas e Lances, para a planilha não convertê-las.

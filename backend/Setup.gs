@@ -26,8 +26,8 @@ const COLUNAS_TEXTO = {
   Domingos:  ['id', 'data', 'status'],
   Presencas: ['domingo_id', 'jogador_id'],
   Times:     ['domingo_id', 'jogador_id'],
-  Partidas:  ['id', 'domingo_id', 'vencedor'],
-  Lances:    ['id', 'partida_id', 'time', 'jogador_id', 'tipo'],
+  Partidas:  ['id', 'domingo_id', 'vencedor', 'inicio', 'fim'],
+  Lances:    ['id', 'partida_id', 'jogador_id', 'tipo', 'criado_em'],
   Notas:     ['data', 'jogador_id'],
   Config:    ['chave', 'valor']
 };

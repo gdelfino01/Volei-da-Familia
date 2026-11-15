@@ -164,3 +164,42 @@ dialog h2{font:700 20px "Space Grotesk",Inter,sans-serif}
 .faixa-demo .btn.texto{color:var(--laranja-tinta);min-height:32px;text-decoration:underline}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Placar ===== */
+.faixa-offline{padding:8px var(--gutter);background:#FEF3C7;color:#78350F;font-size:13px;font-weight:600;text-align:center}
+.faixa-offline[hidden]{display:none}
+.envio{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;border-radius:10px;font-size:13px;font-weight:600}
+.envio.ok{background:var(--ok-claro);color:var(--ok-tinta)}
+.envio.neutro{background:#EFF6FF;color:var(--pri-tinta)}
+.envio.alerta{background:var(--laranja-claro);color:var(--laranja-tinta)}
+.envio .btn.texto{color:inherit;text-decoration:underline;flex:none}
+.placar{gap:10px}
+.time-placar{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:170px;padding:14px 8px 12px;border-radius:16px;
+  background:#fff;border:3px solid #fff;border-top:8px solid var(--cor);cursor:pointer;color:var(--texto);touch-action:manipulation}
+.time-placar .nome{font-size:15px;font-weight:700}
+.time-placar .pts{font:700 72px/1 "Space Grotesk",Inter,sans-serif;font-variant-numeric:tabular-nums}
+.time-placar .mais{font-size:14px;font-weight:700;color:var(--cor)}
+.time-placar.sel{border-color:var(--cor);border-top-width:8px}
+.time-placar:active:not(:disabled){transform:scale(.98)}
+.time-placar:disabled{cursor:default;opacity:.75}
+.painel{box-shadow:0 0 0 2px var(--pri-claro)}
+.btn-j{min-height:48px;padding:0 10px;border-radius:10px;border:1px solid var(--borda);background:#fff;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.btn-j.sel{background:var(--cor);border-color:var(--cor);color:#fff}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.texto.perigo{color:var(--erro)}
+.vitoria{background:var(--ok-claro)}
+.vitoria-tit{display:flex;align-items:center;gap:8px;font:700 20px "Space Grotesk",Inter,sans-serif;color:var(--ok-tinta)}
+.bolinha{display:inline-block;width:10px;height:10px;border-radius:999px;flex:none}
+.lances ol,.fila{margin:0;padding:0;list-style:none}
+.lances li{display:flex;align-items:center;gap:10px;min-height:40px;border-top:1px solid var(--linha-2);font-size:14px}
+.lances .txt{flex:1;font-weight:500}
+.lances .pl{font-size:13px;color:var(--texto-2);font-variant-numeric:tabular-nums}
+.fila li{display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid var(--linha-2);font-weight:600}
+.fila li span:not(.bolinha){flex:1}
+.jogo{display:grid;grid-template-columns:24px 1fr auto 1fr;align-items:center;gap:4px 8px;padding:10px 16px;border-top:1px solid var(--linha-2);font-size:14px}
+.jogo .seq{font-size:12px;color:var(--texto-2)}
+.jogo .lado{display:flex;align-items:center;gap:6px}
+.jogo .lado.dir{justify-content:flex-end}
+.jogo .ganhou{font-weight:700}
+.jogo .res{font:700 16px "Space Grotesk",Inter,sans-serif;font-variant-numeric:tabular-nums}
+.jogo .btn,.jogo .tag{grid-column:2 / -1;justify-self:end}

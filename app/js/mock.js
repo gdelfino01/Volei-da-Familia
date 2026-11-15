@@ -3,6 +3,7 @@
    Só é usado quando API_URL (config.js) está vazia. PIN de teste: 1234. */
 import { SEED, CONFIG_PADRAO } from './seed.js';
 import { normalizar, ehIso } from './core/util.js';
+import { erroDeRede } from './api.js';
 
 const CHAVE = 'vf-app-demo';
 export const PIN_DEMO = '1234';
@@ -13,7 +14,7 @@ function novoBanco(){
       id: 'J' + String(i + 1).padStart(3, '0'), nome, apelido_camisa: '', numero: '', sexo, nascimento: '', altura_cm: '',
       posicao: 'tanto_faz', tipo, nota_admin, ativo: true, idade_aprox, apelidos: '', token_hash: ''
     })),
-    Domingos: [], Presencas: [], Times: [],
+    Domingos: [], Presencas: [], Times: [], Partidas: [], Lances: [],
     Config: CONFIG_PADRAO.map(([chave, valor]) => ({ chave, valor }))
   };
 }
@@ -23,6 +24,7 @@ function db(){
   if (!banco){
     try { banco = JSON.parse(localStorage.getItem(CHAVE)); } catch { banco = null; }
     if (!banco) banco = novoBanco();
+    banco.Partidas ||= []; banco.Lances ||= [];   // bancos de demonstração da fase 1
   }
   return banco;
 }
@@ -49,6 +51,10 @@ function timesDe(id){
   return t.filter(Boolean);
 }
 
+const partidasDe = id => db().Partidas.filter(p => p.domingo_id === id)
+  .map(({ id, seq, time_a, time_b, pontos_a, pontos_b, vencedor, fim }) => ({ id, seq, time_a, time_b, pontos_a, pontos_b, vencedor, fim }))
+  .sort((a, b) => a.seq - b.seq);
+
 function validarPerfil(d, ehAdmin){
   const o = {}, tem = k => Object.hasOwn(d, k);
   if (tem('nome')){ o.nome = String(d.nome).trim().slice(0, 60); if (o.nome.length < 2) throw new Error('Nome muito curto.'); }
@@ -71,7 +77,7 @@ function validarPerfil(d, ehAdmin){
 const ACOES = {
   publico({ data }){
     const d = domingo(data);
-    return { config: config(), jogadores: db().Jogadores.map(publico), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [] };
+    return { config: config(), jogadores: db().Jogadores.map(publico), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [] };
   },
   admin_dados({ pin, data }){
     exigirAdmin(pin);
@@ -79,7 +85,7 @@ const ACOES = {
     const anteriores = db().Domingos.filter(x => x.data < data).sort((a, b) => (a.data < b.data ? 1 : -1));
     let timesAnterior = [];
     for (const a of anteriores){ timesAnterior = timesDe(a.id); if (timesAnterior.length) break; }
-    return { config: config(), jogadores: db().Jogadores.map(admin), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], timesAnterior };
+    return { config: config(), jogadores: db().Jogadores.map(admin), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [], timesAnterior };
   },
   meu_perfil({ id, token }){
     const j = db().Jogadores.find(x => x.id === id);
@@ -128,6 +134,22 @@ const ACOES = {
     salvar();
     return { domingo: d, presencas: ids };
   },
+  sincronizar({ pin, data, partidas = [], excluir = [] }){
+    exigirAdmin(pin);
+    const d = garantirDomingo(data);
+    const ids = new Set(partidas.map(p => p.id).concat(excluir));
+    db().Partidas = db().Partidas.filter(p => !ids.has(p.id));
+    db().Lances = db().Lances.filter(l => !ids.has(l.partida_id));
+    for (const p of partidas){
+      const pa = p.lances.filter(l => l.time === p.time_a).length, pb = p.lances.length - pa;
+      db().Partidas.push({ id: p.id, domingo_id: d.id, seq: p.seq, time_a: p.time_a, time_b: p.time_b, pontos_a: pa, pontos_b: pb,
+        vencedor: p.fim && pa !== pb ? (pa > pb ? p.time_a : p.time_b) : '', alvo: p.alvo, inicio: p.inicio, fim: p.fim });
+      p.lances.forEach((l, i) => db().Lances.push({ ...l, seq: i + 1, partida_id: p.id }));
+    }
+    if (d.status === 'aberto' && partidas.length) d.status = 'em_jogo';
+    salvar();
+    return { sincronizadas: partidas.map(p => p.id), excluidas: excluir };
+  },
   salvar_times({ pin, data, times = [] }){
     exigirAdmin(pin);
     const d = garantirDomingo(data);
@@ -140,6 +162,7 @@ const ACOES = {
 
 export async function chamarDemo(acao, dados){
   await new Promise(r => setTimeout(r, 150));
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw erroDeRede();   // imita a falta de internet
   const fn = ACOES[acao];
   if (!fn) throw new Error('Ação desconhecida.');
   return { ok: true, ...structuredClone(fn(dados || {})) };

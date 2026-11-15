@@ -9,12 +9,14 @@
  *   meu_perfil        {id, token}                 dados do próprio cadastro
  *   salvar_presencas  {pin, data, jogador_ids}    presença do domingo
  *   salvar_times      {pin, data, times}          times do domingo ([[id, ...], ...])
+ *   sincronizar       {pin, data, partidas, excluir}  jogos e lances do placar, em lote (idempotente)
  *
  * Toda resposta é {ok:true, ...} ou {ok:false, erro:'mensagem'}.
  * O PIN do organizador fica em Propriedades do script (ADMIN_PIN), nunca no site.
  */
 
 const POSICOES = ['levantador', 'ponteiro', 'central', 'libero', 'tanto_faz'];
+const TIPOS_LANCE = ['ataque', 'bloqueio', 'ace', 'erro', 'erro_adversario'];
 const MAX_CADASTROS_POR_HORA = 30;
 const MAX_ERROS_PIN = 20;          // em 15 minutos; depois disso, as ações de organizador ficam bloqueadas por 15 minutos
 
@@ -33,7 +35,7 @@ function doPost(e) {
     const c = JSON.parse(e.postData.contents);
     const acoes = {
       admin_dados: adminDados_, salvar_jogador: salvarJogador_, reivindicar: reivindicar_, meu_perfil: meuPerfil_,
-      salvar_presencas: salvarPresencas_, salvar_times: salvarTimes_
+      salvar_presencas: salvarPresencas_, salvar_times: salvarTimes_, sincronizar: sincronizar_
     };
     const fn = acoes[c.acao];
     if (!fn) throw new Error('Ação desconhecida.');
@@ -52,7 +54,8 @@ function publico_(data) {
     jogadores: ler_('Jogadores').map(paraPublico_),
     domingo: d,
     presencas: d ? presencasDe_(d.id) : [],
-    times: d ? timesDe_(d.id) : []
+    times: d ? timesDe_(d.id) : [],
+    partidas: d ? partidasDe_(d.id) : []
   };
 }
 
@@ -69,6 +72,7 @@ function adminDados_(c) {
     domingo: d,
     presencas: d ? presencasDe_(d.id) : [],
     times: d ? timesDe_(d.id) : [],
+    partidas: d ? partidasDe_(d.id) : [],
     timesAnterior: timesAnterior
   };
 }
@@ -153,6 +157,61 @@ function salvarTimes_(c) {
   substituir_('Times', function (r) { return r.domingo_id !== d.id; }, linhas);
   return { domingo: d, times: timesDe_(d.id) };
 }
+
+/* ---------- Placar ---------- */
+
+/* Recebe jogos inteiros (com todos os lances) e substitui o que houver com o mesmo id.
+   Reenviar o mesmo lote não duplica nada; lances desfeitos somem. */
+function sincronizar_(c) {
+  exigirAdmin_(c.pin);
+  const d = garantirDomingo_(c.data);
+  const partidas = Array.isArray(c.partidas) ? c.partidas.slice(0, 40) : [];
+  const excluir = (Array.isArray(c.excluir) ? c.excluir : []).map(String).filter(idOk_);
+  const existe = {};
+  ler_('Jogadores').forEach(function (j) { existe[j.id] = true; });
+  const linhasP = [], linhasL = [];
+
+  partidas.forEach(function (p) {
+    if (!idOk_(p.id)) throw new Error('Jogo com identificador inválido.');
+    const ta = Number(p.time_a), tb = Number(p.time_b);
+    if (!(ta >= 1 && ta <= 8 && tb >= 1 && tb <= 8 && ta !== tb)) throw new Error('Times inválidos no jogo ' + p.seq + '.');
+    let pa = 0, pb = 0;
+    (Array.isArray(p.lances) ? p.lances.slice(0, 300) : []).forEach(function (l, i) {
+      const t = Number(l.time);
+      const jid = l.jogador_id ? String(l.jogador_id) : '';
+      if (!idOk_(l.id) || (t !== ta && t !== tb) || TIPOS_LANCE.indexOf(l.tipo) < 0 || (jid && !existe[jid])) {
+        throw new Error('Lance inválido no jogo ' + p.seq + '.');
+      }
+      if (t === ta) pa++; else pb++;
+      linhasL.push({ id: String(l.id), partida_id: String(p.id), seq: i + 1, time: t, jogador_id: jid, tipo: l.tipo, criado_em: isoOuVazio_(l.criado_em) });
+    });
+    const fim = isoOuVazio_(p.fim);
+    linhasP.push({
+      id: String(p.id), domingo_id: d.id, seq: Number(p.seq) || 0, time_a: ta, time_b: tb, pontos_a: pa, pontos_b: pb,
+      vencedor: fim && pa !== pb ? String(pa > pb ? ta : tb) : '', alvo: Number(p.alvo) || '', inicio: isoOuVazio_(p.inicio), fim: fim
+    });
+  });
+
+  const ids = linhasP.map(function (p) { return p.id; }).concat(excluir);
+  if (ids.length) {
+    substituirPorChave_('Partidas', 'id', ids, linhasP);
+    substituirPorChave_('Lances', 'partida_id', ids, linhasL);
+  }
+  if (d.status === 'aberto' && linhasP.length) { d.status = 'em_jogo'; atualizarLinha_('Domingos', d); }
+  return { sincronizadas: linhasP.map(function (p) { return p.id; }), excluidas: excluir };
+}
+
+function partidasDe_(domingoId) {
+  return ler_('Partidas').filter(function (p) { return p.domingo_id === domingoId; })
+    .map(function (p) {
+      return { id: p.id, seq: Number(p.seq), time_a: Number(p.time_a), time_b: Number(p.time_b), pontos_a: Number(p.pontos_a) || 0,
+               pontos_b: Number(p.pontos_b) || 0, vencedor: p.vencedor === '' ? '' : Number(p.vencedor), fim: p.fim };
+    })
+    .sort(function (a, b) { return a.seq - b.seq; });
+}
+
+function idOk_(s) { return /^[A-Za-z0-9_-]{4,60}$/.test(String(s || '')); }
+function isoOuVazio_(v) { return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/.test(String(v || '')) ? String(v) : ''; }
 
 function domingoPorData_(data) {
   if (!ehIso_(data)) return null;
@@ -325,6 +384,26 @@ function substituir_(nome, manter, novos) {
   const linhas = ler_(nome).filter(manter).concat(novos);
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, cab.length).clearContent();
   if (linhas.length) sh.getRange(2, 1, linhas.length, cab.length).setValues(linhas.map(function (o) { return linha_(cab, o); }));
+}
+
+/* Troca as linhas cuja `coluna` está em `chaves` pelas `novos`.
+   Só reescreve a partir da primeira linha afetada (normalmente o fim da aba). */
+function substituirPorChave_(nome, coluna, chaves, novos) {
+  const sh = aba_(nome), cab = cabecalho_(sh), col = cab.indexOf(coluna);
+  const alvo = {};
+  chaves.forEach(function (k) { alvo[String(k)] = true; });
+  const n = sh.getLastRow() - 1;
+  let inicio = -1;
+  if (n > 0) {
+    const vals = sh.getRange(2, col + 1, n, 1).getValues();
+    for (let i = 0; i < n; i++) if (alvo[String(vals[i][0])]) { inicio = i; break; }
+  }
+  if (inicio < 0) { anexar_(nome, novos); return; }
+  const faixa = sh.getRange(2 + inicio, 1, n - inicio, cab.length);
+  const manter = faixa.getValues().filter(function (r) { return !alvo[String(r[col])] && r.some(function (c) { return c !== ''; }); });
+  faixa.clearContent();
+  const linhas = manter.concat(novos.map(function (o) { return linha_(cab, o); }));
+  if (linhas.length) sh.getRange(2 + inicio, 1, linhas.length, cab.length).setValues(linhas);
 }
 
 function atualizarLinha_(nome, obj) {

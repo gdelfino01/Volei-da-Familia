@@ -17,6 +17,7 @@ apps-script/      Apps Script dos uniformes. Fica só na máquina local (.gitign
 app/              App da pelada (PWA, mobile-first)
   index.html      Casca do app: telas, barra inferior, diálogo do PIN
   manifest.webmanifest, icon*.png, icon.svg   Instalação no celular
+  sw.js           Service worker: o app abre sem internet (escopo só /app)
   css/app.css     Visual do app
   js/
     config.js     URL do Apps Script do app (API_URL) e constantes
@@ -24,12 +25,14 @@ app/              App da pelada (PWA, mobile-first)
     store.js      Estado: dados do domingo, PIN e cadastro ligados a este celular
     api.js        GET/POST para o Apps Script (POST text/plain, sem preflight de CORS)
     mock.js       Modo demonstração: imita a API no localStorage quando API_URL está vazia
+    placar-store.js  Placar guardado no celular e enviado em lote à planilha
     seed.js       Dados iniciais do modo demonstração (iguais aos do Setup.gs)
     ui.js         Cabeçalho, avisos, copiar
     core/         Lógica pura, testada no Node
       util.js     Normalização de nomes, datas, idade
       lista.js    Mensagem de quinta e reconhecimento da lista colada
       times.js    Equilibrar (serpente + trocas locais, 3 opções) e Sortear
+      placar.js   Lances, vencedor, fila "quem ganha fica" e controle do que falta enviar
     views/        Uma tela por arquivo: perfil, lista, times, placar, ranking
 backend/          Apps Script do app (sem segredos). Passo a passo de deploy no backend/LEIAME.md
 tests/            Testes (node --test), sem dependências
@@ -43,6 +46,16 @@ tests/            Testes (node --test), sem dependências
   - Jogadores usam o **Perfil** (cadastro ligado ao celular) e veem os times do domingo.
   - O organizador entra com o PIN e passa a ver a Lista, as notas, a montagem dos times e a edição de todos os cadastros.
 - **A nota nunca aparece para os jogadores.** A leitura pública da API não devolve nota, nascimento nem altura.
+- **Placar na quadra (organizador):**
+  - Tocar no time que pontuou, depois (opcional) em quem fez, depois em como foi. O toque em "como" já registra o lance.
+  - "Erro de jogador" dá o ponto ao outro time. Também há "Desfazer último" e a lista dos últimos lances.
+  - Ao atingir os pontos da partida aparece o vencedor e o botão "Salvar e próximo jogo". Quem ganha fica, e o perdedor vai para o fim da fila.
+- **Sem internet:**
+  - Cada lance é gravado no celular na hora.
+  - O envio à planilha é em lote: ao salvar cada jogo, quando a internet volta e alguns segundos depois do último lance.
+  - Reenviar não duplica nada, porque cada jogo é substituído inteiro pelo seu id.
+  - O app abre sem internet (service worker) com os últimos dados guardados.
+  - Ao mudar arquivos do app, aumente `VERSAO` em `app/sw.js`. O teste `tests/sw.test.js` avisa se a lista de arquivos ficou desatualizada.
 
 ## Rodar localmente
 
@@ -62,4 +75,9 @@ Precisa do Node 20 ou mais novo. Não há dependências para instalar.
 npm test
 ```
 
-Os testes cobrem a mensagem de quinta, o reconhecimento da lista colada, o equilíbrio e o sorteio dos times, e a igualdade entre o seed do app e o do `Setup.gs`.
+Os testes cobrem:
+- a mensagem de quinta e o reconhecimento da lista colada;
+- o equilíbrio e o sorteio dos times;
+- o placar (vencedor, desfazer, fila, envio em lote);
+- a lista de arquivos do service worker;
+- a igualdade entre o seed do app e o do `Setup.gs`.

@@ -13,10 +13,15 @@ async function tratar(resp){
   return j;
 }
 
+/* Erro de conexão: quem chama pode usar os dados guardados no celular */
+export function erroDeRede(){
+  return Object.assign(new Error('Sem conexão com a planilha. Confira a internet e tente de novo.'), { rede: true });
+}
+
 async function rede(fn){
   try { return await fn(); }
   catch (e){
-    if (e instanceof TypeError) throw new Error('Sem conexão com a planilha. Confira a internet e tente de novo.');
+    if (e instanceof TypeError) throw erroDeRede();
     throw e;
   }
 }

@@ -9,10 +9,13 @@ import * as times from './views/times.js';
 import * as placar from './views/placar.js';
 import * as ranking from './views/ranking.js';
 import * as perfil from './views/perfil.js';
+import { sincronizar, totalPendente } from './placar-store.js';
 
 const TELAS = { lista, times, placar, ranking, perfil };
 const tela = document.getElementById('tela');
 const dlg = document.getElementById('dlgPin');
+const faixaOffline = document.getElementById('offline');
+let telaAtual = null;
 
 function rota(){
   const r = location.hash.slice(1);
@@ -23,6 +26,7 @@ function rota(){
 
 function desenhar(){
   const r = rota();
+  faixaOffline.hidden = !(S.offline && S.dados);
   document.querySelectorAll('.barra a').forEach(a => {
     if (a.getAttribute('href') === '#' + r) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
@@ -35,6 +39,8 @@ function desenhar(){
     return;
   }
   const v = TELAS[r];
+  if (telaAtual && telaAtual !== v) telaAtual.sair?.();
+  telaAtual = v;
   tela.onclick = tela.oninput = tela.onchange = tela.onsubmit = null;
   tela.innerHTML = v.render();
   v.bind?.(tela);
@@ -57,7 +63,8 @@ document.addEventListener('click', async e => {
   const g = b.dataset.global;
   if (g === 'admin'){
     if (S.admin){
-      if (!confirm('Sair do modo organizador neste celular?')) return;
+      const pend = totalPendente();
+      if (!confirm(pend ? `Há ${pend} jogo(s) do placar ainda não enviados. Eles ficam guardados aqui, mas só são enviados no modo organizador. Sair mesmo assim?` : 'Sair do modo organizador neste celular?')) return;
       sairAdmin();
       await recarregar();
     } else {
@@ -105,5 +112,9 @@ if (demo){
   faixa.querySelector('span').textContent = `Modo demonstração: os dados ficam só neste navegador. PIN de teste: ${PIN_DEMO}.`;
 }
 
+/* Sem internet o app continua abrindo (service worker) e o placar continua registrando */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+window.addEventListener('online', () => { if (S.offline) recarregar(); });
+
 desenhar();
-recarregar();
+recarregar().then(() => { if (S.admin && totalPendente()) sincronizar(); });

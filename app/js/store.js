@@ -12,29 +12,48 @@ export const S = {
   pin: ler('vf-pin', ''),
   meu: ler('vf-meu', null),          // { id, token } do cadastro ligado a este celular
   meuPerfil: null,
-  erro: ''
+  erro: '',
+  offline: false                     // true quando a tela mostra dados guardados, sem conexão
 };
+
+/* Últimos dados que vieram da planilha, para abrir o app sem internet (ex.: na quadra) */
+const chaveCache = () => (S.pin ? 'a' : 'p') + ':' + S.data;
+function guardarCache(){ gravar('vf-cache', { chave: chaveCache(), dados: S.dados }); }
+function usarCache(){
+  const c = ler('vf-cache', null);
+  if (!c || c.chave !== chaveCache()) return false;
+  S.dados = c.dados; S.admin = !!S.pin; S.offline = true;
+  return true;
+}
 
 export async function carregar(){
   S.erro = '';
-  if (S.pin){
-    try {
-      S.dados = await api.post('admin_dados', { pin: S.pin, data: S.data });
-      S.admin = true;
-      return;
-    } catch (e){
-      if (!/PIN/.test(e.message)) throw e;
-      sairAdmin(false);
+  try {
+    if (S.pin){
+      try {
+        S.dados = await api.post('admin_dados', { pin: S.pin, data: S.data });
+        S.admin = true; S.offline = false;
+        guardarCache();
+        return;
+      } catch (e){
+        if (!/PIN/.test(e.message)) throw e;
+        sairAdmin();
+      }
     }
+    S.dados = await api.get('publico', { data: S.data });
+    S.admin = false; S.offline = false;
+    guardarCache();
+  } catch (e){
+    if (e.rede && usarCache()) return;
+    throw e;
   }
-  S.dados = await api.get('publico', { data: S.data });
-  S.admin = false;
 }
 
 export async function entrarAdmin(pin){
   S.dados = await api.post('admin_dados', { pin, data: S.data });
-  S.pin = pin; S.admin = true;
+  S.pin = pin; S.admin = true; S.offline = false;
   gravar('vf-pin', pin);
+  guardarCache();
 }
 
 export function sairAdmin(){
@@ -58,3 +77,4 @@ export const jogadores = () => S.dados?.jogadores || [];
 export const jogador = id => jogadores().find(j => j.id === id);
 export const presencas = () => S.dados?.presencas || [];
 export const timesSalvos = () => S.dados?.times || [];
+export const partidasSalvas = () => S.dados?.partidas || [];
