@@ -35,6 +35,7 @@ app/              App da pelada (PWA, mobile-first)
       placar.js   Lances, vencedor, fila "quem ganha fica" e controle do que falta enviar
     views/        Uma tela por arquivo: perfil, lista, times, placar, ranking
 backend/          Apps Script do app (sem segredos). Passo a passo de deploy no backend/LEIAME.md
+  Nota.gs         Cálculo da nota e do ranking (funções puras: rodam no Apps Script, no Node e no modo demonstração)
 tests/            Testes (node --test), sem dependências
 ```
 
@@ -50,6 +51,11 @@ tests/            Testes (node --test), sem dependências
   - Tocar no time que pontuou, depois (opcional) em quem fez, depois em como foi. O toque em "como" já registra o lance.
   - "Erro de jogador" dá o ponto ao outro time. Também há "Desfazer último" e a lista dos últimos lances.
   - Ao atingir os pontos da partida aparece o vencedor e o botão "Salvar e próximo jogo". Quem ganha fica, e o perdedor vai para o fim da fila.
+- **Ranking e nota:**
+  - O Ranking mostra Mês e Temporada, com pontos (ataque, bloqueio e ace), aces e vitórias, e destaques para mais pontos, mais aces e mais vitórias. A coluna Nota só aparece para o organizador.
+  - Depois do último jogo, o organizador toca em **Encerrar domingo e recalcular notas** (no Placar).
+  - A regra completa está no topo do `backend/Nota.gs`. Os pesos ficam na aba Config.
+  - O Equilibrar dos times passa a usar essa nota final.
 - **Sem internet:**
   - Cada lance é gravado no celular na hora.
   - O envio à planilha é em lote: ao salvar cada jogo, quando a internet volta e alguns segundos depois do último lance.
@@ -78,6 +84,7 @@ npm test
 Os testes cobrem:
 - a mensagem de quinta e o reconhecimento da lista colada;
 - o equilíbrio e o sorteio dos times;
-- o placar (vencedor, desfazer, fila, envio em lote);
+- o placar (vencedor, desfazer, fila, envio em lote) e o armazenamento dele no celular;
+- a nota (valor dos lances, percentil por sexo, mistura com a nota do organizador, limite de 0,5 por semana, janela de 8 domingos) e o ranking;
 - a lista de arquivos do service worker;
 - a igualdade entre o seed do app e o do `Setup.gs`.

@@ -60,6 +60,7 @@ const SEED = [
 ];
 
 // Aba Config. Os pesos da nota e do equilíbrio dos times podem ser ajustados direto na planilha.
+// temporada_inicio (aaaa-mm-dd): início da temporada no ranking; vazio = 1º de janeiro.
 const CONFIG_PADRAO = [
   ['pontos_partida', 15],
   ['times', 4],
@@ -84,7 +85,8 @@ const CONFIG_PADRAO = [
   ['times_peso_nota', 3],
   ['times_peso_altura', 1],
   ['times_peso_idade', 0.5],
-  ['times_peso_dupla_repetida', 1]
+  ['times_peso_dupla_repetida', 1],
+  ['temporada_inicio', '']
 ];
 
 function configurarPlanilha() {

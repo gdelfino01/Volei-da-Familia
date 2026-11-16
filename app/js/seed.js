@@ -54,5 +54,6 @@ export const CONFIG_PADRAO = [
   ['times_peso_nota', 3],
   ['times_peso_altura', 1],
   ['times_peso_idade', 0.5],
-  ['times_peso_dupla_repetida', 1]
+  ['times_peso_dupla_repetida', 1],
+  ['temporada_inicio', '']
 ];

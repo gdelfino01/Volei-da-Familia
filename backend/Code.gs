@@ -2,6 +2,7 @@
  * Vôlei da Família – App: API JSON publicada como App da Web.
  *
  * GET  ?acao=publico&data=aaaa-mm-dd     leitura pública (sem nota, nascimento ou altura)
+ * GET  ?acao=ranking&data=aaaa-mm-dd     ranking do mês e da temporada (pontos, aces, vitórias; sem nota)
  * POST {acao, ...} com Content-Type text/plain (sem preflight de CORS):
  *   admin_dados       {pin, data}                 tudo do domingo, com notas (organizador)
  *   salvar_jogador    {pin | token, jogador}      cria ou edita um cadastro
@@ -10,6 +11,7 @@
  *   salvar_presencas  {pin, data, jogador_ids}    presença do domingo
  *   salvar_times      {pin, data, times}          times do domingo ([[id, ...], ...])
  *   sincronizar       {pin, data, partidas, excluir}  jogos e lances do placar, em lote (idempotente)
+ *   encerrar_domingo  {pin, data}                 recalcula as notas (Nota.gs) e marca o domingo como encerrado
  *
  * Toda resposta é {ok:true, ...} ou {ok:false, erro:'mensagem'}.
  * O PIN do organizador fica em Propriedades do script (ADMIN_PIN), nunca no site.
@@ -24,6 +26,7 @@ function doGet(e) {
   return responder_(function () {
     const p = (e && e.parameter) || {};
     if (p.acao === 'publico') return publico_(p.data);
+    if (p.acao === 'ranking') return ranking_(p.data);
     if (!p.acao) return { app: 'Vôlei da Família' };
     throw new Error('Ação desconhecida.');
   });
@@ -35,7 +38,8 @@ function doPost(e) {
     const c = JSON.parse(e.postData.contents);
     const acoes = {
       admin_dados: adminDados_, salvar_jogador: salvarJogador_, reivindicar: reivindicar_, meu_perfil: meuPerfil_,
-      salvar_presencas: salvarPresencas_, salvar_times: salvarTimes_, sincronizar: sincronizar_
+      salvar_presencas: salvarPresencas_, salvar_times: salvarTimes_, sincronizar: sincronizar_,
+      encerrar_domingo: encerrarDomingo_
     };
     const fn = acoes[c.acao];
     if (!fn) throw new Error('Ação desconhecida.');
@@ -66,9 +70,10 @@ function adminDados_(c) {
     .sort(function (a, b) { return a.data < b.data ? 1 : -1; });
   let timesAnterior = [];
   for (let i = 0; i < anteriores.length && !timesAnterior.length; i++) timesAnterior = timesDe_(anteriores[i].id);
+  const ultimas = ultimasNotas_(ler_('Notas'));
   return {
     config: config_(),
-    jogadores: ler_('Jogadores').map(paraAdmin_),
+    jogadores: ler_('Jogadores').map(function (j) { return paraAdmin_(j, ultimas); }),
     domingo: d,
     presencas: d ? presencasDe_(d.id) : [],
     times: d ? timesDe_(d.id) : [],
@@ -198,7 +203,51 @@ function sincronizar_(c) {
     substituirPorChave_('Lances', 'partida_id', ids, linhasL);
   }
   if (d.status === 'aberto' && linhasP.length) { d.status = 'em_jogo'; atualizarLinha_('Domingos', d); }
+  invalidarRanking_();
   return { sincronizadas: linhasP.map(function (p) { return p.id; }), excluidas: excluir };
+}
+
+/* ---------- Ranking e nota (cálculo em Nota.gs) ---------- */
+
+function tabelasJogos_() {
+  return { jogadores: ler_('Jogadores'), domingos: ler_('Domingos'), times: ler_('Times'), partidas: ler_('Partidas'), lances: ler_('Lances'), config: config_() };
+}
+
+/* Ranking público, guardado em cache por 10 minutos (o envio do placar e o encerramento limpam o cache) */
+function ranking_(data) {
+  if (!ehIso_(data)) throw new Error('Data inválida.');
+  const cache = CacheService.getScriptCache();
+  const chave = 'ranking:' + (cache.get('ranking_v') || '0') + ':' + data;
+  const guardado = cache.get(chave);
+  if (guardado) return JSON.parse(guardado);
+  const base = tabelasJogos_();
+  const per = periodosRanking_(data, base.config);
+  const res = {
+    periodos: per,
+    mes: rankingPeriodo_(Object.assign({}, base, per.mes)),
+    temporada: rankingPeriodo_(Object.assign({}, base, per.temporada))
+  };
+  try { cache.put(chave, JSON.stringify(res), 600); } catch (e) { /* resultado grande demais para o cache: segue sem */ }
+  return res;
+}
+
+function invalidarRanking_() {
+  CacheService.getScriptCache().put('ranking_v', String(Date.now()), 21600);
+}
+
+function encerrarDomingo_(c) {
+  exigirAdmin_(c.pin);
+  const d = domingoPorData_(c.data);
+  const base = tabelasJogos_();
+  if (!d || !base.partidas.some(function (p) { return p.domingo_id === d.id && p.fim; })) {
+    throw new Error('Nenhum jogo encerrado foi enviado para este domingo.');
+  }
+  const linhas = calcularNotas_(Object.assign(base, { data: d.data, notas: ler_('Notas') }));
+  substituirPorChave_('Notas', 'data', [d.data], linhas);
+  d.status = 'encerrado';
+  atualizarLinha_('Domingos', d);
+  invalidarRanking_();
+  return { domingo: d, notas: linhas };
 }
 
 function partidasDe_(domingoId) {
@@ -262,8 +311,11 @@ function paraDono_(j) {
   return Object.assign(paraPublico_(j), { nascimento: j.nascimento, altura_cm: j.altura_cm });
 }
 
-function paraAdmin_(j) {
-  return Object.assign(paraDono_(j), { nota_admin: Number(j.nota_admin) || 3, idade_aprox: j.idade_aprox, apelidos: j.apelidos });
+/* nota = a usada nos times: a última nota final calculada, ou a nota_admin se ainda não houver */
+function paraAdmin_(j, ultimas) {
+  const admin = Number(j.nota_admin) || 3;
+  const final = ultimas && ultimas[j.id] != null ? ultimas[j.id] : '';
+  return Object.assign(paraDono_(j), { nota_admin: admin, nota_final: final, nota: final === '' ? admin : final, idade_aprox: j.idade_aprox, apelidos: j.apelidos });
 }
 
 /* ---------- Validação ---------- */

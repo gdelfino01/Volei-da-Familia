@@ -7,6 +7,7 @@ O app em `/app` conversa com uma planilha própria, **"Vôlei da Família – Ap
 
 - `Code.gs`: a API JSON (`doGet` para leitura pública, `doPost` para escrita), validação e segurança.
 - `Setup.gs`: abas, colunas, dados iniciais (seed) e a função `configurarPlanilha()`.
+- `Nota.gs`: cálculo da nota e do ranking, só com funções puras (sem planilha). A regra completa está no topo do arquivo.
 
 Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do script**.
 
@@ -17,6 +18,7 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
 3. **Cole o código.**
    - Apague o conteúdo do `Código.gs` e cole o `backend/Code.gs`.
    - Clique em **+ > Script**, crie um arquivo `Setup` e cole o `backend/Setup.gs`.
+   - Clique em **+ > Script** de novo, crie um arquivo `Nota` e cole o `backend/Nota.gs`.
    - Salve (ícone de disquete).
 4. **Ajuste o fuso.** Engrenagem **Configurações do projeto** > Fuso horário: `(GMT-03:00) São Paulo`.
 5. **Configure o PIN.** Ainda em **Configurações do projeto**, desça até **Propriedades do script** > **Adicionar propriedade**:
@@ -53,7 +55,9 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
 
 ## API
 
-`GET ?acao=publico&data=aaaa-mm-dd`: config, jogadores (campos públicos), domingo, presenças e times do dia.
+`GET ?acao=publico&data=aaaa-mm-dd`: config, jogadores (campos públicos), domingo, presenças, times e jogos do dia.
+
+`GET ?acao=ranking&data=aaaa-mm-dd`: ranking do mês e da temporada (pontos, aces, vitórias e partidas; sem nota). Fica 10 minutos em cache e é refeito quando chegam jogos novos.
 
 `POST` (corpo JSON, `Content-Type: text/plain`), sempre com `acao`:
 
@@ -66,6 +70,7 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
 | `salvar_presencas` | `pin`, `data`, `jogador_ids` | organizador |
 | `salvar_times` | `pin`, `data`, `times` (`[[id,…],…]`) | organizador |
 | `sincronizar` | `pin`, `data`, `partidas`, `excluir` | organizador: placar em lote (veja abaixo) |
+| `encerrar_domingo` | `pin`, `data` | organizador: recalcula as notas, grava na aba Notas e marca o domingo como encerrado |
 
 Resposta: `{"ok":true, …}` ou `{"ok":false, "erro":"mensagem"}`.
 
@@ -78,6 +83,19 @@ O celular manda cada jogo inteiro: `{id, seq, time_a, time_b, alvo, inicio, fim,
 - Cada lance é um ponto para `time`, o número do time que pontuou. Os tipos são `ataque`, `bloqueio`, `ace`, `erro` e `erro_adversario`.
   - Em `erro`, `jogador_id` é quem errou, que é do outro time.
   - Em `erro_adversario` não há jogador.
+
+## Nota (aba Notas)
+
+Ao encerrar o domingo, o script grava uma linha por jogador ativo: `data`, `partidas` (nos últimos 8 domingos com jogos), `desempenho`, `nota_calculada` (percentil, separado por sexo) e `nota_final`.
+- Recalcular o mesmo domingo substitui as linhas daquela data.
+- A `nota_final` mais recente é a que o Equilibrar usa. Sem ela, vale a `nota_admin`.
+- Ela muda no máximo `nota_variacao_max` (0,5) por semana, inclusive quando você muda a `nota_admin`.
+- Pesos e limites ficam na aba Config: `peso_*`, `bonus_vitoria`, `domingos_janela`, `nota_percentis`, `nota_partidas_min/max`, `nota_peso_calc_meio/alto` e `nota_variacao_max`.
+- `temporada_inicio` (aaaa-mm-dd) define o começo da temporada no ranking. Vazio = 1º de janeiro.
+
+## Atualizando da fase 2 para a fase 3
+
+Crie o arquivo `Nota` com o `Nota.gs`, cole o `Code.gs` e o `Setup.gs` novos, rode `configurarPlanilha` (acrescenta `temporada_inicio` na Config) e publique uma **nova versão**.
 
 ## Atualizando da fase 1 para a fase 2
 

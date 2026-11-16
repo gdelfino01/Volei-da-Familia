@@ -2,7 +2,9 @@
    Tocar no time que pontuou → (opcional) quem fez → como foi: o toque no "como" já registra.
    Tudo fica no celular na hora e vai para a planilha em lote (placar-store.js). */
 import { S, cfg, jogador, timesSalvos, partidasSalvas } from '../store.js';
-import { cabecalho, soOrganizador, aviso, app } from '../ui.js';
+import { cabecalho, soOrganizador, aviso, executar, app } from '../ui.js';
+import * as api from '../api.js';
+import { invalidar as invalidarRanking } from './ranking.js';
 import { esc, ddmm } from '../core/util.js';
 import {
   TIPOS, TIPOS_PONTO, partidaAtual, encerradas, placar, vencedor, iniciar, registrar, desfazer, encerrar,
@@ -129,7 +131,17 @@ function telaInicio(e){
       <label class="campo">Pontos para vencer<input id="alvo" type="number" inputmode="numeric" min="5" max="30" value="${esc(cfg().pontos_partida || 15)}"></label>
       <button type="button" class="btn pri bloco" data-a="comecar">Começar jogo</button>
     </section>
-    ${filaHTML(e, true)}`;
+    ${filaHTML(e, true)}
+    ${encerradas(e).length ? fimDoDomingo() : ''}`;
+}
+
+function fimDoDomingo(){
+  const encerrado = S.dados?.domingo?.status === 'encerrado';
+  return `<section class="cartao">
+    <h2>Fim do domingo</h2>
+    <p class="mut peq">${encerrado ? 'Domingo encerrado e notas recalculadas. Se algum jogo mudar, recalcule de novo.' : 'Depois do último jogo: envia o que faltar e recalcula a nota de cada jogador com os jogos dos últimos 8 domingos.'}</p>
+    <button type="button" class="btn sec bloco" data-a="encerrar-domingo">${encerrado ? 'Recalcular as notas' : 'Encerrar domingo e recalcular notas'}</button>
+  </section>`;
 }
 
 function listaJogos(jogos, { e = null } = {}){
@@ -252,6 +264,17 @@ export function bind(root){
         depoisDeMudar();
       } else if (a === 'enviar'){
         sincronizar();
+      } else if (a === 'encerrar-domingo'){
+        if (!confirm('Encerrar o domingo e recalcular as notas?')) return;
+        await executar(b, async () => {
+          await sincronizar();
+          if (pendentes(e).length) throw new Error('Ainda há jogos não enviados. Confira a internet e tente de novo.');
+          const r = await api.post('encerrar_domingo', { pin: S.pin, data: S.data });
+          invalidarRanking();
+          aviso(`Notas recalculadas para ${r.notas.length} jogadores.`);
+          await app.recarregar();
+          location.hash = '#ranking';
+        });
       }
     } catch (err){ aviso(err.message, 'erro'); }
   };

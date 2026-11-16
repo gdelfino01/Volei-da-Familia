@@ -9,7 +9,9 @@ import * as times from './views/times.js';
 import * as placar from './views/placar.js';
 import * as ranking from './views/ranking.js';
 import * as perfil from './views/perfil.js';
-import { sincronizar, totalPendente } from './placar-store.js';
+import { sincronizar, totalPendente, depoisDeEnviar } from './placar-store.js';
+
+depoisDeEnviar(ranking.invalidar);
 
 const TELAS = { lista, times, placar, ranking, perfil };
 const tela = document.getElementById('tela');

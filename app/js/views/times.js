@@ -8,7 +8,7 @@ import { CORES_TIMES } from '../config.js';
 
 let opcoes = [], escolhida = 0, modo = null, dataOpcoes = null;
 
-const paraAlgoritmo = j => ({ id: j.id, nome: j.nome, sexo: j.sexo, nota: Number(j.nota_admin) || 3, altura: Number(j.altura_cm) || null, idade: idade(j) });
+const paraAlgoritmo = j => ({ id: j.id, nome: j.nome, sexo: j.sexo, nota: Number(j.nota ?? j.nota_admin) || 3, altura: Number(j.altura_cm) || null, idade: idade(j) });
 const presentes = () => presencas().map(jogador).filter(Boolean).map(paraAlgoritmo);
 const numTimes = () => Number(cfg().times) || 4;
 const pares = () => paresDe(S.dados?.timesAnterior || []);
@@ -73,7 +73,7 @@ function telaAdmin(){
       <button type="button" class="btn pri" data-a="equilibrar">Equilibrar</button>
       <button type="button" class="btn sec" data-a="sortear">Sortear</button>
     </div>
-    <p class="mut peq">Equilibrar usa nota, sexo, altura e idade e evita repetir as duplas do domingo anterior. Sortear é livre, com pelo menos 1 mulher por time.</p>
+    <p class="mut peq">Equilibrar usa a nota (a calculada pelos jogos, quando já houver), sexo, altura e idade e evita repetir as duplas do domingo anterior. Sortear é livre, com pelo menos 1 mulher por time.</p>
   </section>`;
 
   if (opcoes.length){

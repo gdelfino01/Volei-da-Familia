@@ -11,7 +11,10 @@ let estados = (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {
 export const envio = { andamento: false, erro: '', ultimo: null };
 const ouvintes = new Set();
 export const aoMudarEnvio = fn => { ouvintes.add(fn); return () => ouvintes.delete(fn); };
-const avisar = () => ouvintes.forEach(fn => fn());
+// cópia: um ouvinte pode se reinscrever durante o aviso (a tela do placar se redesenha), o que faria o forEach não terminar
+const avisar = () => [...ouvintes].forEach(fn => fn());
+const aoEnviar = new Set();
+export const depoisDeEnviar = fn => aoEnviar.add(fn);
 
 export function guardar(){
   try { localStorage.setItem(CHAVE, JSON.stringify(estados)); }
@@ -44,6 +47,7 @@ export async function sincronizar(){
       guardar();
     }
     envio.ultimo = new Date();
+    [...aoEnviar].forEach(fn => fn());
     limparAntigos();
   } catch (err){
     envio.erro = err.rede ? 'Sem conexão. Os lances estão guardados neste celular.' : err.message;

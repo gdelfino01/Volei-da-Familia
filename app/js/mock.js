@@ -14,7 +14,7 @@ function novoBanco(){
       id: 'J' + String(i + 1).padStart(3, '0'), nome, apelido_camisa: '', numero: '', sexo, nascimento: '', altura_cm: '',
       posicao: 'tanto_faz', tipo, nota_admin, ativo: true, idade_aprox, apelidos: '', token_hash: ''
     })),
-    Domingos: [], Presencas: [], Times: [], Partidas: [], Lances: [],
+    Domingos: [], Presencas: [], Times: [], Partidas: [], Lances: [], Notas: [],
     Config: CONFIG_PADRAO.map(([chave, valor]) => ({ chave, valor }))
   };
 }
@@ -24,7 +24,8 @@ function db(){
   if (!banco){
     try { banco = JSON.parse(localStorage.getItem(CHAVE)); } catch { banco = null; }
     if (!banco) banco = novoBanco();
-    banco.Partidas ||= []; banco.Lances ||= [];   // bancos de demonstração da fase 1
+    banco.Partidas ||= []; banco.Lances ||= []; banco.Notas ||= [];   // bancos de demonstração antigos
+    for (const [chave, valor] of CONFIG_PADRAO) if (!banco.Config.some(c => c.chave === chave)) banco.Config.push({ chave, valor });
   }
   return banco;
 }
@@ -34,7 +35,24 @@ export function zerarDemo(){ banco = novoBanco(); salvar(); }
 const config = () => Object.fromEntries(db().Config.map(c => [c.chave, c.valor]));
 const publico = j => ({ id: j.id, nome: j.nome, apelido_camisa: j.apelido_camisa, numero: String(j.numero || ''), sexo: j.sexo, posicao: j.posicao, tipo: j.tipo, ativo: j.ativo !== false, reivindicado: !!j.token_hash });
 const dono = j => ({ ...publico(j), nascimento: j.nascimento, altura_cm: j.altura_cm });
-const admin = j => ({ ...dono(j), nota_admin: Number(j.nota_admin) || 3, idade_aprox: j.idade_aprox, apelidos: j.apelidos });
+function admin(j, ultimas = {}){
+  const nota_admin = Number(j.nota_admin) || 3, nota_final = ultimas[j.id] ?? '';
+  return { ...dono(j), nota_admin, nota_final, nota: nota_final === '' ? nota_admin : nota_final, idade_aprox: j.idade_aprox, apelidos: j.apelidos };
+}
+
+/* O cálculo da nota e do ranking é o mesmo arquivo do Apps Script (backend/Nota.gs) */
+let notaLib = null;
+async function lib(){
+  if (!notaLib){
+    const resp = await fetch(new URL('../../backend/Nota.gs', import.meta.url));
+    if (!resp.ok) throw new Error('Não foi possível carregar o cálculo da nota (backend/Nota.gs).');
+    const codigo = await resp.text();
+    notaLib = new Function(`${codigo}
+return { calcularNotas_, ultimasNotas_, periodosRanking_, rankingPeriodo_ };`)();
+  }
+  return notaLib;
+}
+const tabelasJogos = () => ({ jogadores: db().Jogadores, domingos: db().Domingos, times: db().Times, partidas: db().Partidas, lances: db().Lances, config: config() });
 
 function exigirAdmin(pin){ if (String(pin || '') !== PIN_DEMO) throw new Error('PIN incorreto.'); }
 const domingo = data => db().Domingos.find(d => d.data === data) || null;
@@ -79,13 +97,14 @@ const ACOES = {
     const d = domingo(data);
     return { config: config(), jogadores: db().Jogadores.map(publico), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [] };
   },
-  admin_dados({ pin, data }){
+  async admin_dados({ pin, data }){
     exigirAdmin(pin);
+    const ultimas = (await lib()).ultimasNotas_(db().Notas);
     const d = domingo(data);
     const anteriores = db().Domingos.filter(x => x.data < data).sort((a, b) => (a.data < b.data ? 1 : -1));
     let timesAnterior = [];
     for (const a of anteriores){ timesAnterior = timesDe(a.id); if (timesAnterior.length) break; }
-    return { config: config(), jogadores: db().Jogadores.map(admin), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [], timesAnterior };
+    return { config: config(), jogadores: db().Jogadores.map(j => admin(j, ultimas)), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [], timesAnterior };
   },
   meu_perfil({ id, token }){
     const j = db().Jogadores.find(x => x.id === id);
@@ -150,6 +169,21 @@ const ACOES = {
     salvar();
     return { sincronizadas: partidas.map(p => p.id), excluidas: excluir };
   },
+  async ranking({ data }){
+    const { periodosRanking_, rankingPeriodo_ } = await lib();
+    const base = tabelasJogos(), periodos = periodosRanking_(data, base.config);
+    return { periodos, mes: rankingPeriodo_({ ...base, ...periodos.mes }), temporada: rankingPeriodo_({ ...base, ...periodos.temporada }) };
+  },
+  async encerrar_domingo({ pin, data }){
+    exigirAdmin(pin);
+    const d = domingo(data);
+    if (!d || !db().Partidas.some(p => p.domingo_id === d.id && p.fim)) throw new Error('Nenhum jogo encerrado foi enviado para este domingo.');
+    const notas = (await lib()).calcularNotas_({ ...tabelasJogos(), data: d.data, notas: db().Notas });
+    db().Notas = db().Notas.filter(n => n.data !== d.data).concat(notas);
+    d.status = 'encerrado';
+    salvar();
+    return { domingo: d, notas };
+  },
   salvar_times({ pin, data, times = [] }){
     exigirAdmin(pin);
     const d = garantirDomingo(data);
@@ -165,5 +199,5 @@ export async function chamarDemo(acao, dados){
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw erroDeRede();   // imita a falta de internet
   const fn = ACOES[acao];
   if (!fn) throw new Error('Ação desconhecida.');
-  return { ok: true, ...structuredClone(fn(dados || {})) };
+  return { ok: true, ...structuredClone(await fn(dados || {})) };
 }

@@ -5,6 +5,8 @@ import { cabecalho, aviso, executar, app } from '../ui.js';
 import { esc, porNome, isoData } from '../core/util.js';
 import { POSICOES } from '../config.js';
 
+const fmtNota = v => (v === '' || v == null ? '—' : String(Math.round(Number(v) * 10) / 10).replace('.', ','));
+
 let modo = null;              // jogador: 'novo' | null.  organizador: id em edição | 'novo' | null
 let buscandoPerfil = false;
 
@@ -43,7 +45,8 @@ function camposAdmin(j){
     <fieldset class="grupo"><legend>Tipo</legend>
       <div class="seg2">${radios('tipo', [['mensalista', 'Mensalista'], ['avulso', 'Avulso']], j.tipo || 'avulso', 'opcao')}</div>
     </fieldset>
-    <fieldset class="grupo"><legend>Nota (1 a 5)</legend>
+    ${j.nota_final !== '' && j.nota_final != null ? `<p class="nota-info">Nota usada nos times: <strong>${esc(fmtNota(j.nota_final))}</strong>, calculada pelos jogos ao encerrar cada domingo. A nota abaixo é a sua avaliação, que entra na mistura.</p>` : ''}
+    <fieldset class="grupo"><legend>Sua nota (1 a 5)</legend>
       <div class="seg5">${radios('nota_admin', [1, 2, 3, 4, 5].map(n => [n, n]), Math.round(j.nota_admin || 3), 'opcao')}</div>
     </fieldset>
     <label class="campo">Apelidos no grupo<input name="apelidos" maxlength="200" placeholder="Separados por vírgula" value="${esc(j.apelidos)}"></label>
@@ -112,7 +115,7 @@ function telaAdminLista(){
     <h2 class="cartao-tit">${titulo} <span class="mut">(${lista.length})</span></h2>
     ${lista.map(j => `<button type="button" class="linha-j" data-a="editar" data-id="${esc(j.id)}">
       <span class="nome">${esc(j.nome)}<small>${esc(j.sexo === 'F' ? 'F' : 'M')} · ${esc(POSICOES[j.posicao] || 'Tanto faz')}${j.altura_cm ? ' · ' + esc(j.altura_cm) + ' cm' : ''}${j.reivindicado ? '' : ' · sem celular'}</small></span>
-      <span class="nota" aria-label="Nota ${esc(j.nota_admin)}">${esc(j.nota_admin)}</span>
+      <span class="nota" aria-label="Nota ${esc(fmtNota(j.nota))}">${esc(fmtNota(j.nota))}</span>
     </button>`).join('')}
   </section>`;
   return cabecalho({ titulo: 'Jogadores', sub: 'Toque em um nome para editar cadastro, tipo e nota.' }) +
