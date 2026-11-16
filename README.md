@@ -1,33 +1,67 @@
 # Vôlei da Família
 
-Site estático (GitHub Pages) com os uniformes 2026 e o formulário de pedido de kits.
+Site estático (GitHub Pages) com duas partes independentes:
+
+- **Uniformes** (raiz): os uniformes 2026 e o formulário de pedido de kits.
+- **App da pelada** (`/app`): lista do WhatsApp, cadastro, times, placar e ranking. Usa uma planilha própria, via Google Apps Script.
 
 ## Estrutura
 
 ```
-index.html        Introdução: escudo, modelos, preços e detalhes
-pedido.html       Pedido em 6 etapas, com a quadra
-css/
-  base.css        Cores, tipografia, botões e cabeçalho (as duas páginas)
-  intro.css       Estilos da introdução
-  pedido.css      Estilos do pedido
-js/
-  config.js       URL da planilha, preços, peças, tamanhos e cores
-  utils.js        Funções pequenas (moeda, escape de HTML)
-  state.js        Estado do pedido e regras (preço, validação)
-  figure.js       Desenho SVG do jogador com o uniforme
-  court.js        Quadra com os jogadores
-  views.js        HTML de cada etapa
-  api.js          Montagem e envio do pedido ao Google Apps Script
-  pix.js          Valor da 1ª parcela e Pix copia e cola
-  pedido.js       Entrada da página de pedido: navegação e eventos
-  intro.js        Entrada da introdução: abas dos modelos e preços
-assets/img/       Escudo e imagens dos uniformes
-assets/email/     Versões em JPG usadas no e-mail de confirmação
-apps-script/      Código do Google Apps Script (planilha + e-mail). Fica só na máquina local (está no .gitignore); veja o LEIAME.md
+index.html        Uniformes: introdução (escudo, modelos, preços e detalhes)
+pedido.html       Uniformes: pedido em 6 etapas, com a quadra
+css/, js/         Uniformes: estilos e módulos (config.js tem preços, Pix e a URL da planilha de pedidos)
+assets/           Escudo e imagens dos uniformes
+apps-script/      Apps Script dos uniformes. Fica só na máquina local (.gitignore), porque tem a chave Pix
+
+app/              App da pelada (PWA, mobile-first)
+  index.html      Casca do app: telas, barra inferior, diálogo do PIN
+  manifest.webmanifest, icon*.png, icon.svg   Instalação no celular
+  sw.js           Service worker: o app abre sem internet (escopo só /app)
+  css/app.css     Visual do app
+  js/
+    config.js     URL do Apps Script do app (API_URL) e constantes
+    main.js       Rotas (#lista, #times, #placar, #ranking, #perfil) e ações globais
+    store.js      Estado: dados do domingo, PIN e cadastro ligados a este celular
+    api.js        GET/POST para o Apps Script (POST text/plain, sem preflight de CORS)
+    mock.js       Modo demonstração: imita a API no localStorage quando API_URL está vazia
+    placar-store.js  Placar guardado no celular e enviado em lote à planilha
+    seed.js       Dados iniciais do modo demonstração (iguais aos do Setup.gs)
+    ui.js         Cabeçalho, avisos, copiar
+    core/         Lógica pura, testada no Node
+      util.js     Normalização de nomes, datas, idade
+      lista.js    Mensagem de quinta e reconhecimento da lista colada
+      times.js    Equilibrar (serpente + trocas locais, 3 opções) e Sortear
+      placar.js   Lances, vencedor, fila "quem ganha fica" e controle do que falta enviar
+    views/        Uma tela por arquivo: perfil, lista, times, placar, ranking
+backend/          Apps Script do app (sem segredos). Passo a passo de deploy no backend/LEIAME.md
+  Nota.gs         Cálculo da nota e do ranking (funções puras: rodam no Apps Script, no Node e no modo demonstração)
+tests/            Testes (node --test), sem dependências
 ```
 
-Preços, dados do Pix e a URL da planilha ficam só em `js/config.js`; a introdução e o pedido leem de lá.
+## App da pelada
+
+- **Deploy do backend:** siga o [backend/LEIAME.md](backend/LEIAME.md). São estes passos: criar a planilha, colar `Code.gs` e `Setup.gs`, definir o `ADMIN_PIN`, rodar `configurarPlanilha`, publicar o App da Web e colar a URL em `app/js/config.js`.
+- **Modo demonstração:** com `API_URL` vazia, o app funciona sozinho no navegador. O PIN de teste é `1234`.
+- **Quem faz o quê:**
+  - Jogadores usam o **Perfil** (cadastro ligado ao celular) e veem os times do domingo.
+  - O organizador entra com o PIN e passa a ver a Lista, as notas, a montagem dos times e a edição de todos os cadastros.
+- **A nota nunca aparece para os jogadores.** A leitura pública da API não devolve nota, nascimento nem altura.
+- **Placar na quadra (organizador):**
+  - Tocar no time que pontuou, depois (opcional) em quem fez, depois em como foi. O toque em "como" já registra o lance.
+  - "Erro de jogador" dá o ponto ao outro time. Também há "Desfazer último" e a lista dos últimos lances.
+  - Ao atingir os pontos da partida aparece o vencedor e o botão "Salvar e próximo jogo". Quem ganha fica, e o perdedor vai para o fim da fila.
+- **Ranking e nota:**
+  - O Ranking mostra Mês e Temporada, com pontos (ataque, bloqueio e ace), aces e vitórias, e destaques para mais pontos, mais aces e mais vitórias. A coluna Nota só aparece para o organizador.
+  - Depois do último jogo, o organizador toca em **Encerrar domingo e recalcular notas** (no Placar).
+  - A regra completa está no topo do `backend/Nota.gs`. Os pesos ficam na aba Config.
+  - O Equilibrar dos times passa a usar essa nota final.
+- **Sem internet:**
+  - Cada lance é gravado no celular na hora.
+  - O envio à planilha é em lote: ao salvar cada jogo, quando a internet volta e alguns segundos depois do último lance.
+  - Reenviar não duplica nada, porque cada jogo é substituído inteiro pelo seu id.
+  - O app abre sem internet (service worker) com os últimos dados guardados.
+  - Ao mudar arquivos do app, aumente `VERSAO` em `app/sw.js`. O teste `tests/sw.test.js` avisa se a lista de arquivos ficou desatualizada.
 
 ## Rodar localmente
 
@@ -37,4 +71,20 @@ Os scripts são módulos ES, então abrir o `index.html` direto no navegador (`f
 python -m http.server 8080
 ```
 
-e abra http://localhost:8080.
+Depois abra http://localhost:8080 para ver os uniformes e http://localhost:8080/app/ para o app.
+
+## Testes
+
+Precisa do Node 20 ou mais novo. Não há dependências para instalar.
+
+```bash
+npm test
+```
+
+Os testes cobrem:
+- a mensagem de quinta e o reconhecimento da lista colada;
+- o equilíbrio e o sorteio dos times;
+- o placar (vencedor, desfazer, fila, envio em lote) e o armazenamento dele no celular;
+- a nota (valor dos lances, percentil por sexo, mistura com a nota do organizador, limite de 0,5 por semana, janela de 8 domingos) e o ranking;
+- a lista de arquivos do service worker;
+- a igualdade entre o seed do app e o do `Setup.gs`.
