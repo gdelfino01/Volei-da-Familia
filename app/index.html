@@ -2,49 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F4F5F7">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vôlei da Família · App</title>
-<meta name="description" content="Lista, times, placar e ranking da pelada Vôlei da Família.">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css">
+<meta name="robots" content="noindex">
+<!-- O app mudou de /app/ para a raiz do site. Este arquivo só redireciona links antigos. -->
+<script>location.replace('../' + location.hash);</script>
+<meta http-equiv="refresh" content="0; url=../">
 </head>
 <body>
-<div id="demo" class="faixa-demo" hidden><span></span> <button type="button" class="btn texto peq" data-global="zerar">Zerar dados</button></div>
-
-<div id="offline" class="faixa-offline" role="status" hidden>Sem conexão: mostrando os últimos dados guardados neste celular.</div>
-
-<main id="tela" class="tela" aria-live="polite"></main>
-
-<nav class="barra" aria-label="Navegação principal">
-  <a href="#lista"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Lista</a>
-  <a href="#times"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.8 3.5 6"/></svg>Times</a>
-  <a href="#placar"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/></svg>Placar</a>
-  <a href="#ranking"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V11M12 20V4M18 20v-6"/></svg>Ranking</a>
-  <a href="#perfil"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Perfil</a>
-</nav>
-
-<dialog id="dlgPin" aria-labelledby="dlgPinTit">
-  <form method="dialog" class="pilha">
-    <h2 id="dlgPinTit">Modo organizador</h2>
-    <p class="mut">Para editar notas, salvar presença e montar times.</p>
-    <label class="campo">PIN<input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="20"></label>
-    <p class="erro" role="alert"></p>
-    <div class="grade2">
-      <button type="button" class="btn sec" data-fechar>Cancelar</button>
-      <button type="submit" class="btn pri" value="entrar">Entrar</button>
-    </div>
-  </form>
-</dialog>
-
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<script type="module" src="js/main.js"></script>
+<p>O app mudou de endereço. <a href="../">Abrir o app</a>.</p>
 </body>
 </html>

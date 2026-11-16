@@ -1,28 +1,46 @@
-import { SCRIPT_URL, PRICES, TOPS, SHORTS } from './config.js';
-import { price, tipo, total } from './state.js';
+/* ===== Comunicação com o Apps Script =====
+   Leitura: GET ?acao=...  Escrita: POST com Content-Type text/plain (não dispara preflight de CORS). */
+import { API_URL } from './config.js';
+import { chamarDemo } from './mock.js';
 
-/* ===== Envio do pedido para a planilha (Google Apps Script) ===== */
-export function buildPayload(players, resp, email){
-  const now = new Date(), pad = x => String(x).padStart(2, '0');
-  const id = 'VF-' + String(now.getFullYear()).slice(2) + pad(now.getMonth() + 1) + pad(now.getDate()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-  return {
-    pedidoId:id, dataHora:now.toISOString(), responsavel:resp.trim(), email:email.trim(), total:+total().toFixed(2),
-    itens:players.map((p, i) => ({
-      jogador:i + 1, genero:p.g === 'F' ? 'Feminino' : 'Masculino', linha:PRICES[p.line].nome,
-      pecaCima:TOPS[p.top], tamanhoCima:p.topSize,
-      short:p.short === 'none' ? '' : SHORTS[p.short], tamanhoShort:p.short === 'none' ? '' : p.shortSize,
-      tipo:tipo(p), nomeCamisa:p.name, numeroCamisa:p.num ? p.num.padStart(2, '0') : '', valor:price(p)
-    }))
-  };
+export const demo = !API_URL;
+
+async function tratar(resp){
+  if (!resp.ok) throw new Error('A planilha não respondeu (' + resp.status + ').');
+  let j;
+  try { j = await resp.json(); } catch { throw new Error('Resposta inválida da planilha. Confira a URL e a publicação do Apps Script.'); }
+  if (!j.ok) throw new Error(j.erro || 'Erro na planilha.');
+  return j;
 }
 
-/* Resolve com { demo } quando o envio sai; rejeita se a rede falhar */
-export async function submitOrder(payload){
-  if (SCRIPT_URL){
-    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
-  } else {
-    await new Promise(r => setTimeout(r, 700));
-    console.log('Pedido (modo de teste):', payload);
+/* Erro de conexão: quem chama pode usar os dados guardados no celular */
+export function erroDeRede(){
+  return Object.assign(new Error('Sem conexão com a planilha. Confira a internet e tente de novo.'), { rede: true });
+}
+
+async function rede(fn){
+  try { return await fn(); }
+  catch (e){
+    if (e instanceof TypeError) throw erroDeRede();
+    throw e;
   }
-  return { demo:!SCRIPT_URL };
+}
+
+export function get(acao, params = {}){
+  if (demo) return chamarDemo(acao, params);
+  return rede(async () => {
+    const u = new URL(API_URL);
+    u.searchParams.set('acao', acao);
+    for (const [k, v] of Object.entries(params)) if (v != null) u.searchParams.set(k, v);
+    return tratar(await fetch(u, { redirect: 'follow' }));
+  });
+}
+
+export function post(acao, corpo = {}){
+  if (demo) return chamarDemo(acao, corpo);
+  return rede(async () => tratar(await fetch(API_URL, {
+    method: 'POST', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ acao, ...corpo })
+  })));
 }

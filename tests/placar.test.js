@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   novoEstado, iniciar, registrar, desfazer, encerrar, placar, vencedor, proximo, cancelarAtual, excluir, priorizar,
   pendentes, lote, confirmar, descreverLance, partidaAtual
-} from '../app/js/core/placar.js';
+} from '../js/core/placar.js';
 
 let n = 0;
 const id = () => 'X' + String(++n).padStart(6, '0');

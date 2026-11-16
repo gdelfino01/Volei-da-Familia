@@ -11,7 +11,7 @@ globalThis.localStorage = {
   removeItem: k => memoria.delete(k)
 };
 
-const PS = await import('../app/js/placar-store.js');
+const PS = await import('../js/placar-store.js');
 
 test('um ouvinte que se reinscreve durante o aviso não trava o app', () => {
   // A tela do placar faz isso: ao ser avisada, redesenha e se inscreve de novo.

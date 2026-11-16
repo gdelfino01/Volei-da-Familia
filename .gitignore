@@ -1,6 +1,3 @@
-# Código do Apps Script do UNIFORME: fica só nesta máquina (tem a chave Pix e o e-mail da organização)
-/apps-script/
-
 # Configurações locais do Claude Code / editor
 .claude/
 .vscode/

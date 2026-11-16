@@ -1,7 +1,7 @@
 # Backend do app (Google Apps Script)
 
-O app em `/app` conversa com uma planilha própria, **"Vôlei da Família – App"**, por meio de um App da Web do Apps Script.
-É uma planilha nova: a planilha dos uniformes e a do caixa não são tocadas.
+O app conversa com uma planilha própria, **"Vôlei da Família – App"**, por meio de um App da Web do Apps Script.
+É uma planilha nova: a planilha do caixa não é tocada.
 
 ## Arquivos
 
@@ -31,8 +31,8 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
    - Executar como: **Eu**
    - Quem pode acessar: **Qualquer pessoa**
    - Clique em **Implantar** e copie a URL que termina em `/exec`.
-8. **Ligue o site.** Cole a URL em `API_URL` no arquivo `app/js/config.js`, faça o commit e o push.
-   O GitHub Pages publica em `https://gdelfino01.github.io/Volei-da-Familia/app/`.
+8. **Ligue o site.** Cole a URL em `API_URL` no arquivo `js/config.js`, faça o commit e o push.
+   O GitHub Pages publica em `https://gdelfino01.github.io/Volei-da-Familia/`.
 9. **Teste.** Abra a URL `/exec?acao=publico` no navegador: deve aparecer um JSON com `"ok":true` e os jogadores.
    No app, toque em **Organizador** e digite o PIN.
 

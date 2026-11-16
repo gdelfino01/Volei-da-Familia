@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { equilibrar, sortear, tamanhos, estatisticas, custo, paresDe, PESOS_PADRAO } from '../app/js/core/times.js';
-import { SEED } from '../app/js/seed.js';
+import { equilibrar, sortear, tamanhos, estatisticas, custo, paresDe, PESOS_PADRAO } from '../js/core/times.js';
+import { SEED } from '../js/seed.js';
 
 /* Gerador aleatório com semente, para os testes serem repetíveis */
 function rngFixo(semente = 42){

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { gerarMensagem, reconhecerLista, entraPorPadrao, linkWhatsApp } from '../app/js/core/lista.js';
-import { normalizar, proximoDomingo, isoData, idade } from '../app/js/core/util.js';
+import { gerarMensagem, reconhecerLista, entraPorPadrao, linkWhatsApp } from '../js/core/lista.js';
+import { normalizar, proximoDomingo, isoData, idade } from '../js/core/util.js';
 
 const J = (id, nome, extra = {}) => ({ id, nome, tipo: 'mensalista', ...extra });
 
