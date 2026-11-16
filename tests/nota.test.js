@@ -129,3 +129,23 @@ test('última nota de cada jogador', () => {
     { data: '2026-11-08', jogador_id: 'A', nota_final: 3.5 }, { data: '2026-11-15', jogador_id: 'A', nota_final: 3.8 }, { data: '2026-11-01', jogador_id: 'B', nota_final: 2 }
   ])), { A: 3.8, B: 2 });
 });
+
+test('partidas e vitórias contam pela escalação de cada partida (revezamento fica de fora)', () => {
+  // Times do domingo: 1 = [A1, A2], 2 = [B1, B2]; R no revezamento.
+  const t = tabelas([{ data: '2026-11-15', times: { 1: ['A1', 'A2'], 2: ['B1', 'B2'] }, jogos: [
+    { a: 1, b: 2, venc: 1, lances: [[1, 'A2', 'ataque']] },
+    { a: 1, b: 2, venc: 2, lances: [[1, 'R', 'ace']] }
+  ] }]);
+  // 1º jogo: escalação igual aos times. 2º jogo: R entrou no lugar de A2 no time 1.
+  t.escalacoes = [
+    { partida_id: 'P1', time: 'A', jogador_id: 'A1' }, { partida_id: 'P1', time: 'A', jogador_id: 'A2' },
+    { partida_id: 'P1', time: 'B', jogador_id: 'B1' }, { partida_id: 'P1', time: 'B', jogador_id: 'B2' },
+    { partida_id: 'P2', time: 'A', jogador_id: 'A1' }, { partida_id: 'P2', time: 'A', jogador_id: 'R' },
+    { partida_id: 'P2', time: 'B', jogador_id: 'B1' }, { partida_id: 'P2', time: 'B', jogador_id: 'B2' }
+  ];
+  const est = limpo(N.somarJogos_(t, tudo(t), N.pesosNota_({})));
+  assert.deepEqual([est.A1.partidas, est.A1.vitorias], [2, 1]);
+  assert.deepEqual([est.A2.partidas, est.A2.vitorias], [1, 1], 'A2 ficou fora do 2º jogo');
+  assert.deepEqual([est.R.partidas, est.R.vitorias, est.R.aces], [1, 0, 1], 'R jogou só o 2º, pelo time 1');
+  assert.deepEqual([est.B1.partidas, est.B1.vitorias], [2, 1]);
+});

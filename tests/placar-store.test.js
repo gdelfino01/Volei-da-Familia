@@ -12,6 +12,7 @@ globalThis.localStorage = {
 };
 
 const PS = await import('../js/placar-store.js');
+const { novoEstado } = await import('../js/core/placar.js');
 
 test('um ouvinte que se reinscreve durante o aviso não trava o app', () => {
   // A tela do placar faz isso: ao ser avisada, redesenha e se inscreve de novo.
@@ -27,8 +28,10 @@ test('um ouvinte que se reinscreve durante o aviso não trava o app', () => {
 });
 
 test('estado do domingo fica guardado e ids são únicos', () => {
-  const e = PS.estadoDe('2026-11-22', 4);
+  const e = PS.estadoDe('2026-11-22', () => novoEstado('2026-11-22', { times: [['a'], ['b'], ['c'], ['d']], revezamento: ['r'] }));
   assert.deepEqual(e.fila, [1, 2, 3, 4]);
+  assert.deepEqual(e.revezamento, ['r']);
+  assert.equal(PS.estadoDe('2026-11-22', () => { throw new Error('não deveria recriar'); }), e);
   assert.ok(memoria.get('vf-placar').includes('2026-11-22'));
   const ids = new Set(Array.from({ length: 200 }, () => PS.novoId('L')));
   assert.equal(ids.size, 200);

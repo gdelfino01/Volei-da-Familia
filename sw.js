@@ -4,7 +4,7 @@
    Chamadas ao Apps Script nunca passam por aqui: os dados do placar ficam no localStorage.
    Ao mudar a lista de arquivos, aumente a versão. O teste tests/sw.test.js confere a lista. */
 
-const VERSAO = 'vf-app-v4';
+const VERSAO = 'vf-app-v5';
 const ARQUIVOS = [
   "./",
   "index.html",

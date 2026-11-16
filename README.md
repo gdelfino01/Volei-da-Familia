@@ -23,7 +23,7 @@ js/
     util.js       Normalização de nomes, datas, idade
     lista.js      Mensagem de quinta e reconhecimento da lista colada
     times.js      Equilibrar (serpente + trocas locais, 3 opções) e Sortear
-    placar.js     Lances, vencedor, fila "quem ganha fica" e controle do que falta enviar
+    placar.js     Lances, desempate, fila (quem ganha fica, 3 vitórias), escalação por partida, revezamento e envio
   views/          Uma tela por arquivo: perfil, lista, times, placar, ranking
 app/              Só redireciona o endereço antigo (/app/) para a raiz
 backend/          Apps Script (sem segredos). Passo a passo de deploy no backend/LEIAME.md
@@ -39,10 +39,20 @@ tests/            Testes (node --test), sem dependências
   - Jogadores usam o **Perfil** (cadastro ligado ao celular) e veem os times, os resultados e o ranking.
   - O organizador entra com o PIN e passa a ver a Lista, as notas, a montagem dos times, o placar e a edição de todos os cadastros.
 - **A nota nunca aparece para os jogadores.** A leitura pública da API não devolve nota, nascimento nem altura.
+- **Regras do jogo** (aba Config):
+  - Partida até 11 (`pontos_partida`).
+  - Se empatar em 10 x 10 (`gatilho_desempate`), vence quem fizer 3 pontos primeiro (`pontos_desempate`). O jogo termina em 13 x 10, 13 x 11 ou 13 x 12.
+  - Fila: quem ganha fica; o perdedor vai para o fim da fila e entra o primeiro dela.
+  - Regra das 3 vitórias, só com 4 times completos e ninguém no revezamento: quem vence 3 seguidas sai junto com o perdedor, entram os dois da fila e a fila fica [time das 3 vitórias, perdedor].
+- **Times e revezamento:**
+  - O sorteio monta o máximo de times completos de 4 (`jogadores_por_time`). Quem sobra fica no revezamento, indicado como H ou M. Exemplos: 13 jogadores = 3 times + 1; 14 = 3 times + 2.
+  - A cada jogo, quem está no revezamento entra no time que perdeu. O app sugere quem sai por sorteio, preferindo o mesmo sexo de quem entra e quem ficou menos vezes fora no dia. O organizador confirma ou troca com um toque.
+  - Antes de cada partida, a escalação dos dois times pode ser mudada: trocar, tirar ou adicionar alguém do revezamento.
+  - A escalação é salva por partida (aba Escalacoes). Vitórias, estatísticas e nota contam só as partidas em que cada um estava em quadra.
 - **Placar na quadra (organizador):**
   - Tocar no time que pontuou, depois (opcional) em quem fez, depois em como foi. O toque em "como" já registra o lance.
   - "Erro de jogador" dá o ponto ao outro time. Também há "Desfazer último" e a lista dos últimos lances.
-  - Ao atingir os pontos da partida aparece o vencedor e o botão "Salvar e próximo jogo". Quem ganha fica, e o perdedor vai para o fim da fila.
+  - Ao terminar, aparece o vencedor e o botão "Salvar e próximo jogo", que leva à tela do próximo jogo, com a escalação e a sugestão de revezamento.
 - **Ranking e nota:**
   - O Ranking mostra Mês e Temporada, com pontos (ataque, bloqueio e ace), aces e vitórias, e destaques para mais pontos, mais aces e mais vitórias. A coluna Nota só aparece para o organizador.
   - Depois do último jogo, o organizador toca em **Encerrar domingo e recalcular notas** (no Placar).

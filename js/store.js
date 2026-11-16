@@ -77,4 +77,5 @@ export const jogadores = () => S.dados?.jogadores || [];
 export const jogador = id => jogadores().find(j => j.id === id);
 export const presencas = () => S.dados?.presencas || [];
 export const timesSalvos = () => S.dados?.times || [];
+export const revezamentoSalvo = () => S.dados?.revezamento || [];
 export const partidasSalvas = () => S.dados?.partidas || [];

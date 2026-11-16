@@ -143,3 +143,45 @@ export function sortear(jogadores, numTimes, { rng = Math.random, pesos = PESOS_
   embaralhar(vagas, rng).forEach((k, i) => times[k].push(resto[i]));
   return { times, custo: custo(times, pesos, pares), aviso: faltamMulheres ? 'Há menos mulheres do que times.' : '' };
 }
+
+/* ---------- Lista incompleta: times completos + revezamento ---------- */
+
+/* Quantos times completos cabem e quem fica no revezamento.
+   Escolhe os sexos de quem fica fora para que homens e mulheres se dividam o mais igual possível
+   entre os times; dentro de cada sexo, a escolha é por sorteio. */
+export function separarRevezamento(jogadores, porTime = 4, rng = Math.random){
+  const numTimes = Math.floor(jogadores.length / porTime);
+  const k = jogadores.length - numTimes * porTime;
+  const F = jogadores.filter(j => j.sexo === 'F'), M = jogadores.filter(j => j.sexo !== 'F');
+  let melhores = [], menor = Infinity;
+  for (let kf = Math.max(0, k - M.length); kf <= Math.min(k, F.length); kf++){
+    const rf = F.length - kf, rm = M.length - (k - kf);
+    const c = numTimes ? (rf % numTimes ? 1 : 0) + (rm % numTimes ? 1 : 0) : 0;
+    if (c < menor){ menor = c; melhores = [kf]; } else if (c === menor) melhores.push(kf);
+  }
+  const kf = melhores.length ? melhores[Math.floor(rng() * melhores.length)] : 0;
+  const revezamento = embaralhar(F, rng).slice(0, kf).concat(embaralhar(M, rng).slice(0, k - kf));
+  const fora = new Set(revezamento.map(j => j.id));
+  return { numTimes, emQuadra: jogadores.filter(j => !fora.has(j.id)), revezamento };
+}
+
+/* Monta os times do domingo: o máximo de times completos de `porTime`, e o resto no revezamento.
+   modo 'equilibrar' devolve até 3 opções (cada uma com seu revezamento); 'sortear' devolve uma. */
+export function montarTimes(jogadores, { porTime = 4, modo = 'equilibrar', pesos = PESOS_PADRAO, pares = new Set(), rng = Math.random } = {}){
+  if (jogadores.length < porTime * 2) throw new Error(`São precisos pelo menos ${porTime * 2} jogadores para 2 times de ${porTime}.`);
+  const sobra = jogadores.length % porTime;
+  if (modo === 'sortear'){
+    const sep = separarRevezamento(jogadores, porTime, rng);
+    return [{ ...sortear(sep.emQuadra, sep.numTimes, { rng, pesos, pares }), revezamento: sep.revezamento }];
+  }
+  const unicas = new Map();
+  const rodadas = sobra ? 8 : 1;
+  for (let r = 0; r < rodadas; r++){
+    const sep = separarRevezamento(jogadores, porTime, rng);
+    for (const op of equilibrar(sep.emQuadra, sep.numTimes, { pesos, pares, rng, opcoes: 3, tentativas: sobra ? 20 : 60 })){
+      const chave = chaveTimes(op.times) + '#' + sep.revezamento.map(j => j.id).sort().join(',');
+      if (!unicas.has(chave)) unicas.set(chave, { ...op, revezamento: sep.revezamento });
+    }
+  }
+  return [...unicas.values()].sort((a, b) => a.custo - b.custo).slice(0, 3);
+}

@@ -9,12 +9,15 @@
 
 // Abas e colunas. Colunas novas sempre no fim, para não deslocar as existentes.
 const ABAS = {
-  Jogadores: ['id', 'nome', 'apelido_camisa', 'numero', 'sexo', 'nascimento', 'altura_cm', 'posicao', 'tipo', 'nota_admin', 'ativo',
+  Jogadores: ['id', 'nome', 'apelido_camisa', 'numero', 'sexo', 'nascimento', 'altura_cm', 'tipo', 'nota_admin', 'ativo',
               'idade_aprox', 'apelidos', 'token_hash', 'criado_em', 'atualizado_em'],
   Domingos:  ['id', 'data', 'status'],
   Presencas: ['domingo_id', 'jogador_id'],
-  Times:     ['domingo_id', 'time_num', 'jogador_id'],
-  Partidas:  ['id', 'domingo_id', 'seq', 'time_a', 'time_b', 'pontos_a', 'pontos_b', 'vencedor', 'alvo', 'inicio', 'fim'],
+  Times:     ['domingo_id', 'time_num', 'jogador_id'],                 // time_num 0 = revezamento
+  Partidas:  ['id', 'domingo_id', 'seq', 'time_a', 'time_b', 'pontos_a', 'pontos_b', 'vencedor', 'alvo', 'inicio', 'fim',
+              'gatilho', 'desempate'],
+  Escalacoes: ['partida_id', 'time', 'jogador_id'],                     // time: A ou B; quem estava em quadra
+  Revezamentos: ['domingo_id', 'partida_id', 'sai_jogador_id', 'entra_jogador_id'],
   Lances:    ['id', 'partida_id', 'seq', 'time', 'jogador_id', 'tipo', 'criado_em'],
   Notas:     ['data', 'jogador_id', 'partidas', 'desempenho', 'nota_calculada', 'nota_final'],
   Config:    ['chave', 'valor']
@@ -22,11 +25,13 @@ const ABAS = {
 
 // Colunas guardadas como texto puro (evita a planilha converter datas, horas e números com zero à esquerda)
 const COLUNAS_TEXTO = {
-  Jogadores: ['id', 'nome', 'apelido_camisa', 'numero', 'sexo', 'nascimento', 'posicao', 'tipo', 'apelidos', 'token_hash'],
+  Jogadores: ['id', 'nome', 'apelido_camisa', 'numero', 'sexo', 'nascimento', 'tipo', 'apelidos', 'token_hash'],
   Domingos:  ['id', 'data', 'status'],
   Presencas: ['domingo_id', 'jogador_id'],
   Times:     ['domingo_id', 'jogador_id'],
   Partidas:  ['id', 'domingo_id', 'vencedor', 'inicio', 'fim'],
+  Escalacoes: ['partida_id', 'time', 'jogador_id'],
+  Revezamentos: ['domingo_id', 'partida_id', 'sai_jogador_id', 'entra_jogador_id'],
   Lances:    ['id', 'partida_id', 'jogador_id', 'tipo', 'criado_em'],
   Notas:     ['data', 'jogador_id'],
   Config:    ['chave', 'valor']
@@ -60,10 +65,13 @@ const SEED = [
 ];
 
 // Aba Config. Os pesos da nota e do equilíbrio dos times podem ser ajustados direto na planilha.
+// pontos_partida: pontos para vencer. Se empatar em gatilho_desempate (10 x 10), vence quem fizer pontos_desempate (3) primeiro.
+// jogadores_por_time: tamanho dos times; o sorteio monta o máximo de times completos e o resto fica no revezamento.
 // temporada_inicio (aaaa-mm-dd): início da temporada no ranking; vazio = 1º de janeiro.
 const CONFIG_PADRAO = [
-  ['pontos_partida', 15],
-  ['times', 4],
+  ['pontos_partida', 11],
+  ['gatilho_desempate', 10],
+  ['pontos_desempate', 3],
   ['jogadores_por_time', 4],
   ['vagas', 16],
   ['suplentes', 3],
@@ -87,6 +95,12 @@ const CONFIG_PADRAO = [
   ['times_peso_idade', 0.5],
   ['times_peso_dupla_repetida', 1],
   ['temporada_inicio', '']
+];
+
+// Valores padrão que mudaram de regra: só são trocados se a planilha ainda tiver o padrão antigo.
+// [chave, padrão antigo, padrão novo]
+const CONFIG_MIGRACOES = [
+  ['pontos_partida', '15', '11']
 ];
 
 function configurarPlanilha() {
@@ -120,10 +134,18 @@ function configurarPlanilha() {
     const agora = new Date();
     anexar_('Jogadores', SEED.map(function (s, i) {
       return { id: 'J' + ('00' + (i + 1)).slice(-3), nome: s[0], sexo: s[1], nota_admin: s[2], tipo: s[3], idade_aprox: s[4],
-               posicao: 'tanto_faz', ativo: true, criado_em: agora, atualizado_em: agora };
+               ativo: true, criado_em: agora, atualizado_em: agora };
     }));
     log.push('Jogadores: ' + SEED.length + ' cadastros iniciais');
   }
+
+  CONFIG_MIGRACOES.forEach(function (m) {
+    const c = ler_('Config').filter(function (x) { return x.chave === m[0]; })[0];
+    if (c && String(c.valor).trim() === m[1]) {
+      atualizarConfig_(m[0], m[2]);
+      log.push('Config: ' + m[0] + ' de ' + m[1] + ' para ' + m[2] + ' (nova regra)');
+    }
+  });
 
   const chaves = ler_('Config').map(function (c) { return c.chave; });
   const novas = CONFIG_PADRAO.filter(function (c) { return chaves.indexOf(c[0]) < 0; });
@@ -136,4 +158,11 @@ function configurarPlanilha() {
     log.push('ATENÇÃO: falta o PIN. Configurações do projeto > Propriedades do script > ADMIN_PIN.');
   }
   Logger.log(log.length ? log.join('\n') : 'Tudo já estava configurado.');
+}
+
+function atualizarConfig_(chave, valor) {
+  const sh = aba_('Config'), cab = cabecalho_(sh);
+  const chaves = sh.getRange(2, cab.indexOf('chave') + 1, Math.max(sh.getLastRow() - 1, 1), 1).getValues().map(function (r) { return String(r[0]); });
+  const i = chaves.indexOf(chave);
+  if (i >= 0) sh.getRange(i + 2, cab.indexOf('valor') + 1).setValue(String(valor));
 }

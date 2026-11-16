@@ -9,15 +9,14 @@
  *   reivindicar       {id}                        "sou eu": liga um cadastro sem dono a este celular
  *   meu_perfil        {id, token}                 dados do próprio cadastro
  *   salvar_presencas  {pin, data, jogador_ids}    presença do domingo
- *   salvar_times      {pin, data, times}          times do domingo ([[id, ...], ...])
- *   sincronizar       {pin, data, partidas, excluir}  jogos e lances do placar, em lote (idempotente)
+ *   salvar_times      {pin, data, times, revezamento}  times do domingo ([[id, ...], ...]) e quem fica no revezamento
+ *   sincronizar       {pin, data, partidas, excluir}  jogos, escalações, revezamentos e lances do placar, em lote (idempotente)
  *   encerrar_domingo  {pin, data}                 recalcula as notas (Nota.gs) e marca o domingo como encerrado
  *
  * Toda resposta é {ok:true, ...} ou {ok:false, erro:'mensagem'}.
  * O PIN do organizador fica em Propriedades do script (ADMIN_PIN), nunca no site.
  */
 
-const POSICOES = ['levantador', 'ponteiro', 'central', 'libero', 'tanto_faz'];
 const TIPOS_LANCE = ['ataque', 'bloqueio', 'ace', 'erro', 'erro_adversario'];
 const MAX_CADASTROS_POR_HORA = 30;
 const MAX_ERROS_PIN = 20;          // em 15 minutos; depois disso, as ações de organizador ficam bloqueadas por 15 minutos
@@ -59,6 +58,7 @@ function publico_(data) {
     domingo: d,
     presencas: d ? presencasDe_(d.id) : [],
     times: d ? timesDe_(d.id) : [],
+    revezamento: d ? revezamentoDe_(d.id) : [],
     partidas: d ? partidasDe_(d.id) : []
   };
 }
@@ -77,6 +77,7 @@ function adminDados_(c) {
     domingo: d,
     presencas: d ? presencasDe_(d.id) : [],
     times: d ? timesDe_(d.id) : [],
+    revezamento: d ? revezamentoDe_(d.id) : [],
     partidas: d ? partidasDe_(d.id) : [],
     timesAnterior: timesAnterior
   };
@@ -105,7 +106,7 @@ function salvarJogador_(c) {
     const igual = lista.filter(function (j) { return normalizar_(j.nome) === normalizar_(limpo.nome); })[0];
     if (igual) throw new Error('Já existe um cadastro com o nome ' + igual.nome + '.');
     if (!admin) limitarCadastros_();
-    const novo = Object.assign({ tipo: 'avulso', nota_admin: 3, ativo: true, posicao: 'tanto_faz' }, limpo,
+    const novo = Object.assign({ tipo: 'avulso', nota_admin: 3, ativo: true }, limpo,
       { id: novoId_(lista), criado_em: agora, atualizado_em: agora });
     let token = '';
     if (!admin) { token = Utilities.getUuid(); novo.token_hash = hash_(token); }
@@ -154,13 +155,15 @@ function salvarTimes_(c) {
   exigirAdmin_(c.pin);
   const d = garantirDomingo_(c.data);
   const times = Array.isArray(c.times) ? c.times : [];
+  const revezamento = Array.isArray(c.revezamento) ? c.revezamento : [];
   if (times.length < 2 || times.length > 8) throw new Error('Times inválidos.');
-  const todos = idsValidos_([].concat.apply([], times));
-  if (todos.length !== [].concat.apply([], times).length) throw new Error('Jogador repetido ou desconhecido nos times.');
+  const enviados = [].concat.apply([], times).concat(revezamento);
+  if (idsValidos_(enviados).length !== enviados.length) throw new Error('Jogador repetido ou desconhecido nos times.');
   const linhas = [];
   times.forEach(function (t, i) { t.forEach(function (id) { linhas.push({ domingo_id: d.id, time_num: i + 1, jogador_id: String(id) }); }); });
+  revezamento.forEach(function (id) { linhas.push({ domingo_id: d.id, time_num: 0, jogador_id: String(id) }); });
   substituir_('Times', function (r) { return r.domingo_id !== d.id; }, linhas);
-  return { domingo: d, times: timesDe_(d.id) };
+  return { domingo: d, times: timesDe_(d.id), revezamento: revezamentoDe_(d.id) };
 }
 
 /* ---------- Placar ---------- */
@@ -174,7 +177,12 @@ function sincronizar_(c) {
   const excluir = (Array.isArray(c.excluir) ? c.excluir : []).map(String).filter(idOk_);
   const existe = {};
   ler_('Jogadores').forEach(function (j) { existe[j.id] = true; });
-  const linhasP = [], linhasL = [];
+  const linhasP = [], linhasL = [], linhasE = [], linhasR = [];
+  const idJogador = function (v, seq) {
+    const id = v ? String(v) : '';
+    if (id && !existe[id]) throw new Error('Jogador desconhecido no jogo ' + seq + '.');
+    return id;
+  };
 
   partidas.forEach(function (p) {
     if (!idOk_(p.id)) throw new Error('Jogo com identificador inválido.');
@@ -193,7 +201,18 @@ function sincronizar_(c) {
     const fim = isoOuVazio_(p.fim);
     linhasP.push({
       id: String(p.id), domingo_id: d.id, seq: Number(p.seq) || 0, time_a: ta, time_b: tb, pontos_a: pa, pontos_b: pb,
-      vencedor: fim && pa !== pb ? String(pa > pb ? ta : tb) : '', alvo: Number(p.alvo) || '', inicio: isoOuVazio_(p.inicio), fim: fim
+      vencedor: fim && pa !== pb ? String(pa > pb ? ta : tb) : '', alvo: Number(p.alvo) || '', inicio: isoOuVazio_(p.inicio), fim: fim,
+      gatilho: Number(p.gatilho) || '', desempate: Number(p.desempate) || ''
+    });
+    const esc = p.escalacao || {};
+    ['A', 'B'].forEach(function (lado) {
+      (Array.isArray(esc[lado]) ? esc[lado].slice(0, 12) : []).forEach(function (j) {
+        linhasE.push({ partida_id: String(p.id), time: lado, jogador_id: idJogador(j, p.seq) });
+      });
+    });
+    (Array.isArray(p.revezamentos) ? p.revezamentos.slice(0, 20) : []).forEach(function (t) {
+      const sai = idJogador(t.sai, p.seq), entra = idJogador(t.entra, p.seq);
+      if (sai || entra) linhasR.push({ domingo_id: d.id, partida_id: String(p.id), sai_jogador_id: sai, entra_jogador_id: entra });
     });
   });
 
@@ -201,6 +220,8 @@ function sincronizar_(c) {
   if (ids.length) {
     substituirPorChave_('Partidas', 'id', ids, linhasP);
     substituirPorChave_('Lances', 'partida_id', ids, linhasL);
+    substituirPorChave_('Escalacoes', 'partida_id', ids, linhasE);
+    substituirPorChave_('Revezamentos', 'partida_id', ids, linhasR);
   }
   if (d.status === 'aberto' && linhasP.length) { d.status = 'em_jogo'; atualizarLinha_('Domingos', d); }
   invalidarRanking_();
@@ -210,7 +231,8 @@ function sincronizar_(c) {
 /* ---------- Ranking e nota (cálculo em Nota.gs) ---------- */
 
 function tabelasJogos_() {
-  return { jogadores: ler_('Jogadores'), domingos: ler_('Domingos'), times: ler_('Times'), partidas: ler_('Partidas'), lances: ler_('Lances'), config: config_() };
+  return { jogadores: ler_('Jogadores'), domingos: ler_('Domingos'), times: ler_('Times'), partidas: ler_('Partidas'), lances: ler_('Lances'),
+           escalacoes: ler_('Escalacoes'), config: config_() };
 }
 
 /* Ranking público, guardado em cache por 10 minutos (o envio do placar e o encerramento limpam o cache) */
@@ -282,11 +304,16 @@ function presencasDe_(domingoId) {
 
 function timesDe_(domingoId) {
   const times = [];
-  ler_('Times').filter(function (r) { return r.domingo_id === domingoId; }).forEach(function (r) {
+  ler_('Times').filter(function (r) { return r.domingo_id === domingoId && Number(r.time_num) >= 1; }).forEach(function (r) {
     const k = Number(r.time_num) - 1;
     (times[k] = times[k] || []).push(String(r.jogador_id));
   });
   return times.filter(Boolean);
+}
+
+function revezamentoDe_(domingoId) {
+  return ler_('Times').filter(function (r) { return r.domingo_id === domingoId && Number(r.time_num) === 0; })
+    .map(function (r) { return String(r.jogador_id); });
 }
 
 function idsValidos_(ids) {
@@ -303,7 +330,7 @@ function idsValidos_(ids) {
 /* ---------- Quem vê o quê ---------- */
 
 function paraPublico_(j) {
-  return { id: j.id, nome: j.nome, apelido_camisa: j.apelido_camisa, numero: String(j.numero || ''), sexo: j.sexo, posicao: j.posicao,
+  return { id: j.id, nome: j.nome, apelido_camisa: j.apelido_camisa, numero: String(j.numero || ''), sexo: j.sexo,
            tipo: j.tipo, ativo: j.ativo !== false, reivindicado: !!j.token_hash };
 }
 
@@ -345,7 +372,6 @@ function limparPerfil_(d) {
     o.altura_cm = d.altura_cm === '' || d.altura_cm == null ? '' : Math.round(Number(d.altura_cm));
     if (o.altura_cm !== '' && !(o.altura_cm >= 100 && o.altura_cm <= 230)) throw new Error('Altura: de 100 a 230 cm.');
   }
-  if (tem('posicao')) o.posicao = POSICOES.indexOf(d.posicao) >= 0 ? d.posicao : 'tanto_faz';
   return o;
 }
 

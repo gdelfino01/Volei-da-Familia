@@ -26,7 +26,7 @@ Nenhum dos dois tem segredo: o PIN do organizador fica em **Propriedades do scri
    - Valor: um PIN de **6 dígitos ou mais**, que só a organização sabe.
 6. **Crie as abas e o seed.** Volte ao editor, escolha a função `configurarPlanilha` no menu ao lado de **Executar** e clique em **Executar**.
    O Google pede autorização na primeira vez (Revisar permissões > sua conta > Avançado > Acessar).
-   Em **Registro de execução** aparece o que foi criado. As abas Jogadores, Domingos, Presencas, Times, Partidas, Lances, Notas e Config ficam prontas, com os 23 jogadores e os pesos na Config.
+   Em **Registro de execução** aparece o que foi criado. As abas Jogadores, Domingos, Presencas, Times, Partidas, Escalacoes, Revezamentos, Lances, Notas e Config ficam prontas, com os 23 jogadores e os pesos na Config.
 7. **Publique o App da Web.** **Implantar > Nova implantação** > engrenagem > **App da Web**:
    - Executar como: **Eu**
    - Quem pode acessar: **Qualquer pessoa**
@@ -92,6 +92,29 @@ Ao encerrar o domingo, o script grava uma linha por jogador ativo: `data`, `part
 - Ela muda no máximo `nota_variacao_max` (0,5) por semana, inclusive quando você muda a `nota_admin`.
 - Pesos e limites ficam na aba Config: `peso_*`, `bonus_vitoria`, `domingos_janela`, `nota_percentis`, `nota_partidas_min/max`, `nota_peso_calc_meio/alto` e `nota_variacao_max`.
 - `temporada_inicio` (aaaa-mm-dd) define o começo da temporada no ranking. Vazio = 1º de janeiro.
+
+## Abas do placar
+
+- **Times:** os times de cada domingo. `time_num` 0 é quem começou no revezamento.
+- **Partidas:** um jogo por linha, com `alvo`, `gatilho` e `desempate` (as regras daquele jogo).
+- **Escalacoes:** quem estava em quadra em cada partida (`time` A ou B). É ela que conta para vitórias, estatísticas e nota.
+- **Revezamentos:** cada troca entre partidas (`sai_jogador_id`, `entra_jogador_id`; um dos dois pode ficar vazio quando alguém só sai ou só entra).
+
+## Atualizando para as regras novas (desempate, revezamento, escalação por partida)
+
+**Faça isto antes de publicar o site novo.** O app novo manda o revezamento e as escalações; um script antigo ignoraria esses dados.
+
+1. Cole o `Code.gs`, o `Setup.gs` e o `Nota.gs` novos e salve.
+2. Rode `configurarPlanilha`. Ela:
+   - cria as abas `Escalacoes` e `Revezamentos`;
+   - acrescenta `gatilho` e `desempate` em Partidas;
+   - acrescenta `gatilho_desempate` e `pontos_desempate` na Config;
+   - troca `pontos_partida` de 15 para 11, **só se ainda estiver 15**.
+3. Publique uma **nova versão** (Implantar > Gerenciar implantações > lápis > Nova versão).
+
+Não é preciso apagar nada:
+- A coluna `posicao` da aba Jogadores e a chave `times` da Config deixam de ser usadas. Pode apagá-las se quiser.
+- Jogos antigos, sem escalação salva, continuam contando pelos times do domingo.
 
 ## Atualizando da fase 2 para a fase 3
 

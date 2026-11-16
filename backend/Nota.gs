@@ -9,6 +9,8 @@
  * - Valor de cada lance para quem fez: ataque +1, bloqueio +1, ace +1,5, erro −0,5, erro do adversário 0.
  * - Vitória: +2 para cada jogador do time vencedor.
  * - Desempenho = soma ÷ partidas jogadas, nos últimos 8 domingos com jogos.
+ * - Só contam as partidas em que o jogador estava em quadra (aba Escalacoes, salva por partida).
+ *   Partidas sem escalação salva usam os times do domingo (aba Times).
  * - Nota calculada por percentil, separado por sexo: 10% melhores = 5, 25% = 4, 30% = 3, 25% = 2, 10% finais = 1.
  * - Nota final = mistura com a nota_admin: menos de 6 partidas, só a nota_admin; de 6 a 20, metade de cada;
  *   mais de 20, 30% nota_admin e 70% calculada.
@@ -39,6 +41,7 @@ function pesosNota_(cfg) {
 }
 
 /* Soma os jogos encerrados dos domingos em `domingosValidos` ({domingo_id: true}).
+   dados: { times, partidas, lances, escalacoes? }
    Devolve { jogador_id: { partidas, vitorias, pontos, aces, ataques, bloqueios, erros, soma } } */
 function somarJogos_(dados, domingosValidos, pesos) {
   const timesDe = {};
@@ -46,6 +49,11 @@ function somarJogos_(dados, domingosValidos, pesos) {
     const d = timesDe[r.domingo_id] = timesDe[r.domingo_id] || {};
     const t = Number(r.time_num);
     (d[t] = d[t] || []).push(String(r.jogador_id));
+  });
+  const escal = {};
+  (dados.escalacoes || []).forEach(function (r) {
+    const e = escal[r.partida_id] = escal[r.partida_id] || { A: [], B: [] };
+    (String(r.time) === 'B' ? e.B : e.A).push(String(r.jogador_id));
   });
   const est = {};
   const de = function (id) {
@@ -56,8 +64,12 @@ function somarJogos_(dados, domingosValidos, pesos) {
     if (!domingosValidos[p.domingo_id] || !p.fim) return;
     contadas[p.id] = true;
     const tm = timesDe[p.domingo_id] || {};
-    [Number(p.time_a), Number(p.time_b)].forEach(function (t) {
-      (tm[t] || []).forEach(function (id) {
+    const es = escal[p.id];
+    const ta = Number(p.time_a), tb = Number(p.time_b);
+    const lados = es && (es.A.length || es.B.length) ? [[ta, es.A], [tb, es.B]] : [[ta, tm[ta] || []], [tb, tm[tb] || []]];
+    lados.forEach(function (lado) {
+      const t = lado[0];
+      lado[1].forEach(function (id) {
         const e = de(id);
         e.partidas++;
         if (p.vencedor !== '' && p.vencedor != null && Number(p.vencedor) === t) { e.vitorias++; e.soma += pesos.vitoria; }

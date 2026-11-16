@@ -3,7 +3,7 @@
    quando a internet volta e alguns segundos depois do último lance; se falhar, tenta de novo depois. */
 import * as api from './api.js';
 import { S } from './store.js';
-import { novoEstado, pendentes, lote, confirmar } from './core/placar.js';
+import { pendentes, lote, confirmar } from './core/placar.js';
 
 const CHAVE = 'vf-placar';
 let estados = (() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch { return {}; } })();
@@ -21,9 +21,17 @@ export function guardar(){
   catch { envio.erro = 'Não foi possível guardar no celular (armazenamento cheio ou bloqueado).'; avisar(); }
 }
 
-export function estadoDe(data, numTimes){
-  if (!estados[data]) { estados[data] = novoEstado(data, numTimes); guardar(); }
+/* Estado do domingo; `criar` monta um novo quando ainda não existe */
+export function estadoDe(data, criar){
+  if (!estados[data]) { estados[data] = criar(); guardar(); }
   return estados[data];
+}
+
+/* Troca o estado inteiro (ex.: times refeitos antes do primeiro jogo) */
+export function substituirEstado(data, novo){
+  estados[data] = novo;
+  guardar();
+  return novo;
 }
 export const temEstado = data => !!estados[data];
 

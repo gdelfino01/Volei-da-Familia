@@ -1,31 +1,43 @@
 /* ===== Placar lance a lance (uso na quadra) =====
-   Tocar no time que pontuou → (opcional) quem fez → como foi: o toque no "como" já registra.
+   Antes de cada jogo: os dois times em quadra, com a escalação editável (trocar, tirar, adicionar do revezamento)
+   e a sugestão de revezamento para o time que acabou de perder.
+   Durante o jogo: tocar no time que pontuou → (opcional) quem fez → como foi: o toque no "como" já registra.
    Tudo fica no celular na hora e vai para a planilha em lote (placar-store.js). */
-import { S, cfg, jogador, timesSalvos, partidasSalvas } from '../store.js';
+import { S, cfg, jogador, timesSalvos, revezamentoSalvo, partidasSalvas } from '../store.js';
 import { cabecalho, soOrganizador, aviso, executar, app } from '../ui.js';
 import * as api from '../api.js';
 import { invalidar as invalidarRanking } from './ranking.js';
 import { esc, ddmm } from '../core/util.js';
 import {
-  TIPOS, TIPOS_PONTO, partidaAtual, encerradas, placar, vencedor, iniciar, registrar, desfazer, encerrar,
-  cancelarAtual, excluir, priorizar, pendentes, descreverLance
+  TIPOS, TIPOS_PONTO, regras, novoEstado, partidaAtual, encerradas, placar, vencedor, emDesempate, alvoAtual, proximo,
+  iniciar, registrar, desfazer, encerrar, cancelarAtual, excluir, priorizar, pendentes, descreverLance, emQuadra,
+  regra3Ativa, trocar, prepararRevezamento, mudarSugestao, aplicarSugestao
 } from '../core/placar.js';
-import { estadoDe, guardar, novoId, sincronizar, agendar, envio, totalPendente, aoMudarEnvio } from '../placar-store.js';
+import { estadoDe, substituirEstado, guardar, novoId, sincronizar, agendar, envio, totalPendente, aoMudarEnvio } from '../placar-store.js';
 import { CORES_TIMES } from '../config.js';
 
-let painel = null;          // { tipo: 'ponto', time, jogador } | { tipo: 'erro' }
+let painel = null;          // durante o jogo: { tipo: 'ponto', time, jogador } | { tipo: 'erro' }
+let editor = null;          // antes do jogo: { time, sai } (sai vazio = adicionar)
+let par = null;             // times escolhidos para o próximo jogo
 let pararDeOuvir = null, travaTela = null;
 
 const cor = t => CORES_TIMES[(t - 1) % CORES_TIMES.length];
 const nomeDe = id => jogador(id)?.nome || 'Jogador';
-const jogadoresDo = t => (timesSalvos()[t - 1] || []).map(id => ({ id, nome: nomeDe(id) }));
+const sexoDe = id => jogador(id)?.sexo || 'M';
+const hm = id => (sexoDe(id) === 'F' ? 'M' : 'H');
 const bolinha = t => `<span class="bolinha" style="background:${cor(t)}" aria-hidden="true"></span>`;
 
 function estado(){
-  const n = timesSalvos().length;
-  const e = estadoDe(S.data, n);
-  // times refeitos antes do primeiro jogo: a fila acompanha
-  if (!e.partidas.length && !e.atual && e.fila.length !== n){ e.fila = Array.from({ length: n }, (_, i) => i + 1); guardar(); }
+  const times = timesSalvos(), revezamento = revezamentoSalvo();
+  const assinatura = JSON.stringify([times, revezamento]);
+  const criar = () => ({ ...novoEstado(S.data, { times, revezamento, porTime: regras(cfg()).porTime }), assinatura });
+  const e = estadoDe(S.data, criar);
+  if (!e.elencos){
+    // placar guardado por uma versão anterior do app: mantém os jogos e ganha elencos e revezamento
+    return substituirEstado(S.data, { ...criar(), partidas: e.partidas, atual: e.atual, fila: e.fila });
+  }
+  // times refeitos (na aba Times) antes do primeiro jogo: começa de novo com eles
+  if (!e.partidas.length && !e.atual && e.assinatura !== assinatura) return substituirEstado(S.data, criar());
   return e;
 }
 
@@ -41,6 +53,13 @@ function statusEnvio(){
   return `<div id="envio" class="envio ${cls}" role="status"><span>${esc(txt)}</span>${botao ? '<button type="button" class="btn texto peq" data-a="enviar">Enviar agora</button>' : ''}</div>`;
 }
 
+function textoRegras(){
+  const r = regras(cfg());
+  return r.gatilho > 0 && r.desempate > 0 && r.gatilho < r.alvo
+    ? `Até ${r.alvo}. Empatou em ${r.gatilho} x ${r.gatilho}: vence quem fizer ${r.desempate} pontos primeiro (até ${r.gatilho + r.desempate}).`
+    : `Até ${r.alvo}.`;
+}
+
 function cartaoTime(t, pts, fim){
   const sel = painel?.tipo === 'ponto' && painel.time === t;
   return `<button type="button" class="time-placar${sel ? ' sel' : ''}" style="--cor:${cor(t)}" data-a="ponto" data-t="${t}" aria-pressed="${sel}"${fim ? ' disabled' : ''}>
@@ -50,14 +69,14 @@ function cartaoTime(t, pts, fim){
   </button>`;
 }
 
-function painelPonto(){
+function painelPonto(e, p){
   const t = painel.time;
   return `<section class="cartao painel" aria-label="Registrar ponto do Time ${t}">
     <h2>Ponto do Time ${t}: quem fez?</h2>
     <p class="mut peq">Opcional. Depois toque em como foi.</p>
-    <div class="grade2">${jogadoresDo(t).map(j => {
-      const sel = painel.jogador === j.id;
-      return `<button type="button" class="btn-j${sel ? ' sel' : ''}" style="--cor:${cor(t)}" data-a="quem" data-id="${esc(j.id)}" aria-pressed="${sel}">${esc(j.nome)}</button>`;
+    <div class="grade2">${emQuadra(e, p, t).map(id => {
+      const sel = painel.jogador === id;
+      return `<button type="button" class="btn-j${sel ? ' sel' : ''}" style="--cor:${cor(t)}" data-a="quem" data-id="${esc(id)}" aria-pressed="${sel}">${esc(nomeDe(id))}</button>`;
     }).join('')}</div>
     <h3 class="sub-tit">Como?</h3>
     <div class="grade2">${TIPOS_PONTO.map(tp => `<button type="button" class="btn pri" data-a="como" data-tipo="${tp}">${TIPOS[tp]}</button>`).join('')}</div>
@@ -65,13 +84,13 @@ function painelPonto(){
   </section>`;
 }
 
-function painelErro(p){
+function painelErro(e, p){
   return `<section class="cartao painel" aria-label="Registrar erro de jogador">
     <h2>Quem errou?</h2>
     <p class="mut peq">Saque ou ataque fora. O ponto vai para o outro time.</p>
     ${[p.time_a, p.time_b].map(t => `<h3 class="sub-tit">${bolinha(t)} Time ${t}</h3>
-      <div class="grade2">${jogadoresDo(t).map(j =>
-        `<button type="button" class="btn-j" style="--cor:${cor(t)}" data-a="errou" data-id="${esc(j.id)}" data-t="${t}">${esc(j.nome)}</button>`).join('')}</div>`).join('')}
+      <div class="grade2">${emQuadra(e, p, t).map(id =>
+        `<button type="button" class="btn-j" style="--cor:${cor(t)}" data-a="errou" data-id="${esc(id)}" data-t="${t}">${esc(nomeDe(id))}</button>`).join('')}</div>`).join('')}
     <button type="button" class="btn texto" data-a="fechar">Cancelar</button>
   </section>`;
 }
@@ -88,8 +107,61 @@ function ultimosLances(p){
 
 function filaHTML(e, comBotoes){
   if (!e.fila.length) return '';
-  return `<section class="cartao"><h2>Fila</h2><ol class="fila">${e.fila.map((t, i) => `<li>${bolinha(t)}<span>Time ${t}</span>
+  const regra = regra3Ativa(e) ? 'Quem ganha fica. Com 3 vitórias seguidas, o time sai junto com o perdedor.' : 'Quem ganha fica.';
+  return `<section class="cartao"><h2>Fila</h2><p class="mut peq">${regra}</p><ol class="fila">${e.fila.map((t, i) => `<li>${bolinha(t)}<span>Time ${t}</span>
     ${comBotoes && i > 0 ? `<button type="button" class="btn texto peq" data-a="priorizar" data-t="${t}">Passar para a frente</button>` : ''}</li>`).join('')}</ol></section>`;
+}
+
+/* Revezamento: quem está fora e quantas vezes ficou fora hoje */
+function revezamentoHTML(e){
+  if (!e.revezamento.length) return '';
+  return `<section class="cartao revez"><h2>Revezamento</h2>
+    <div class="tags">${e.revezamento.map(id => `<span class="tag laranja">${esc(nomeDe(id))} (${hm(id)})${e.contRevez[id] > 1 ? ` · ${e.contRevez[id]}x fora` : ''}</span>`).join('')}</div>
+  </section>`;
+}
+
+/* Sugestão de revezamento para o time que perdeu */
+function sugestaoHTML(e){
+  const s = e.sugestao;
+  if (!s || !s.trocas.length) return '';
+  const elenco = e.elencos[s.time] || [];
+  return `<section class="cartao sugestao" aria-label="Revezamento do Time ${s.time}">
+    <h2>${bolinha(s.time)} Revezamento do Time ${s.time}</h2>
+    <p class="mut peq">Sugestão por sorteio: mesmo sexo de quem entra e quem ficou menos vezes fora hoje. Toque em outro nome para trocar.</p>
+    ${s.trocas.map((t, i) => `<div class="troca">
+      <p><strong>Entra ${esc(nomeDe(t.entra))}</strong> (${hm(t.entra)}). Sai:</p>
+      <div class="chips">${elenco.map(id => `<button type="button" class="chip-j${id === t.sai ? ' sel' : ''}" data-a="sug-sai" data-i="${i}" data-id="${esc(id)}" aria-pressed="${id === t.sai}">${esc(nomeDe(id))} (${hm(id)})</button>`).join('')}</div>
+    </div>`).join('')}
+    <button type="button" class="btn ok bloco" data-a="sug-confirmar">Confirmar troca</button>
+    <p class="mut peq">Se não mexer, a troca sugerida é feita ao começar o próximo jogo.</p>
+  </section>`;
+}
+
+/* Escalação de um time antes do jogo, com troca rápida */
+function escalacaoHTML(e, t){
+  const elenco = e.elencos[t] || [];
+  const h = elenco.filter(id => sexoDe(id) !== 'F').length;
+  const aberto = editor && editor.time === t;
+  let painelEd = '';
+  if (aberto){
+    const sexo = editor.sai ? sexoDe(editor.sai) : null;
+    const candidatos = e.revezamento.slice().sort((x, y) =>
+      ((sexo && sexoDe(x) !== sexo) - (sexo && sexoDe(y) !== sexo)) || ((e.contRevez[y] || 0) - (e.contRevez[x] || 0)));
+    painelEd = `<div class="editor">
+      <p class="rotulo">${editor.sai ? `Trocar ${esc(nomeDe(editor.sai))} por:` : 'Adicionar ao time:'}</p>
+      ${candidatos.length ? `<div class="chips">${candidatos.map(id => `<button type="button" class="chip-j" data-a="trocar-com" data-id="${esc(id)}">${esc(nomeDe(id))} (${hm(id)})${sexo && sexoDe(id) === sexo ? ' · sugerido' : ''}</button>`).join('')}</div>` : '<p class="mut peq">Ninguém no revezamento.</p>'}
+      <div class="linha-entre">
+        ${editor.sai ? `<button type="button" class="btn texto peq perigo" data-a="tirar">Só tirar (vai para o revezamento)</button>` : '<span></span>'}
+        <button type="button" class="btn texto peq" data-a="fechar-editor">Fechar</button>
+      </div>
+    </div>`;
+  }
+  return `<section class="cartao escalacao" style="--cor:${cor(t)}">
+    <h2>${bolinha(t)} Time ${t} <span class="mut peq">${elenco.length} jogadores · ${h}H ${elenco.length - h}M</span></h2>
+    <div class="chips">${elenco.map(id => `<button type="button" class="chip-j${aberto && editor.sai === id ? ' sel' : ''}" data-a="editar" data-t="${t}" data-id="${esc(id)}">${esc(nomeDe(id))} (${hm(id)})</button>`).join('')}
+      ${e.revezamento.length ? `<button type="button" class="chip-j mais" data-a="adicionar" data-t="${t}">+ Adicionar</button>` : ''}</div>
+    ${painelEd}
+  </section>`;
 }
 
 function telaJogo(e, p){
@@ -101,9 +173,10 @@ function telaJogo(e, p){
       <p class="vitoria-tit">${bolinha(v)} Time ${v} venceu ${Math.max(a, b)} a ${Math.min(a, b)}</p>
       <button type="button" class="btn ok bloco" data-a="salvar-proximo">Salvar e próximo jogo</button>
     </section>`;
-  } else if (painel?.tipo === 'ponto') meio = painelPonto();
-  else if (painel?.tipo === 'erro') meio = painelErro(p);
+  } else if (painel?.tipo === 'ponto') meio = painelPonto(e, p);
+  else if (painel?.tipo === 'erro') meio = painelErro(e, p);
   return `<div class="grade2 placar">${cartaoTime(p.time_a, a, !!v)}${cartaoTime(p.time_b, b, !!v)}</div>
+    ${emDesempate(p) && !v ? `<p class="desempate" role="status">Desempate: vence quem chegar a ${alvoAtual(p)}.</p>` : ''}
     ${meio}
     <div class="grade2">
       <button type="button" class="btn sec" data-a="erro"${v ? ' disabled' : ''}>Erro de jogador</button>
@@ -111,7 +184,9 @@ function telaJogo(e, p){
     </div>
     ${ultimosLances(p)}
     ${e.fila.length ? `<p class="mut peq">Próximo: vencedor x Time ${e.fila[0]}.</p>` : ''}
+    ${sugestaoHTML(e)}
     ${filaHTML(e, false)}
+    ${revezamentoHTML(e)}
     <div class="linha-entre">
       <button type="button" class="btn texto" data-a="encerrar">Encerrar agora</button>
       <button type="button" class="btn texto perigo" data-a="cancelar">Cancelar este jogo</button>
@@ -119,18 +194,23 @@ function telaJogo(e, p){
 }
 
 function telaInicio(e){
-  const n = timesSalvos().length;
-  const [pa, pb] = [e.fila[0] ?? 1, e.fila[1] ?? 2];
+  const n = Object.keys(e.elencos).length;
+  const sugerido = proximo(e);
+  if (!par || par[0] === par[1] || !e.elencos[par[0]] || !e.elencos[par[1]]) par = [sugerido[0] ?? 1, sugerido[1] ?? 2];
   const opcoes = sel => Array.from({ length: n }, (_, i) => `<option value="${i + 1}"${i + 1 === sel ? ' selected' : ''}>Time ${i + 1}</option>`).join('');
   return `<section class="cartao">
       <h2>${encerradas(e).length ? 'Próximo jogo' : 'Primeiro jogo'}</h2>
       <div class="grade2">
-        <label class="campo">Time A<select id="tA">${opcoes(pa)}</select></label>
-        <label class="campo">Time B<select id="tB">${opcoes(pb)}</select></label>
+        <label class="campo">Time A<select id="tA" data-a="par">${opcoes(par[0])}</select></label>
+        <label class="campo">Time B<select id="tB" data-a="par">${opcoes(par[1])}</select></label>
       </div>
-      <label class="campo">Pontos para vencer<input id="alvo" type="number" inputmode="numeric" min="5" max="30" value="${esc(cfg().pontos_partida || 15)}"></label>
-      <button type="button" class="btn pri bloco" data-a="comecar">Começar jogo</button>
+      <p class="mut peq">${esc(textoRegras())}</p>
     </section>
+    ${sugestaoHTML(e)}
+    ${escalacaoHTML(e, par[0])}
+    ${escalacaoHTML(e, par[1])}
+    ${revezamentoHTML(e)}
+    <button type="button" class="btn pri bloco" data-a="comecar">Começar jogo</button>
     ${filaHTML(e, true)}
     ${encerradas(e).length ? fimDoDomingo() : ''}`;
 }
@@ -176,7 +256,8 @@ export function render(){
   }
   const e = estado();
   const p = partidaAtual(e);
-  return cabecalho({ kicker: p ? `Jogo ${p.seq} · até ${p.alvo}` : `Domingo, ${ddmm(S.data)}`, titulo: 'Placar' }) +
+  const kicker = p ? `Jogo ${p.seq} · ${emDesempate(p) ? 'desempate até ' + alvoAtual(p) : 'até ' + p.alvo}` : `Domingo, ${ddmm(S.data)}`;
+  return cabecalho({ kicker, titulo: 'Placar' }) +
     statusEnvio() +
     (p ? telaJogo(e, p) : telaInicio(e)) +
     listaJogos(encerradas(e), { e });
@@ -204,9 +285,16 @@ export function bind(root){
   }
   if (pendentes(e).length && navigator.onLine !== false) agendar(3000);
 
+  root.onchange = ev => {
+    if (ev.target.dataset.a !== 'par') return;
+    par = [Number(root.querySelector('#tA').value), Number(root.querySelector('#tB').value)];
+    editor = null;
+    app.desenhar();
+  };
+
   root.onclick = async ev => {
     const b = ev.target.closest('[data-a]');
-    if (!b) return;
+    if (!b || b.tagName === 'SELECT') return;
     const a = b.dataset.a;
     const p = partidaAtual(e);
     try {
@@ -240,24 +328,49 @@ export function bind(root){
         depoisDeMudar();
       } else if (a === 'salvar-proximo' || a === 'encerrar'){
         if (a === 'encerrar' && !confirm('Encerrar este jogo agora, com o placar atual?')) return;
-        const alvo = p.alvo;
-        const [x, y] = encerrar(e);
-        painel = null;
-        if (x && y) iniciar(e, x, y, { alvo, id: novoId('P', S.data) });
+        const v = vencedor(p);
+        const r = encerrar(e);
+        if (r.perdedor && e.revezamento.length) prepararRevezamento(e, r.perdedor, { sexoDe });
+        par = r.par; painel = null; editor = null;
         guardar();
-        aviso(x && y ? `Jogo salvo. Agora: Time ${x} x Time ${y}.` : 'Jogo salvo.');
+        aviso(r.tresVitorias
+          ? `3 vitórias seguidas: o Time ${v} sai junto com o Time ${r.perdedor}. Agora: Time ${r.par[0]} x Time ${r.par[1]}.`
+          : `Jogo salvo. Próximo: Time ${r.par[0]} x Time ${r.par[1]}.`);
         sincronizar();
         app.desenhar(); window.scrollTo(0, 0);
       } else if (a === 'cancelar'){
         if (!confirm('Cancelar este jogo? Os pontos dele serão apagados.')) return;
+        par = [p.time_a, p.time_b];
         cancelarAtual(e); painel = null;
         depoisDeMudar();
       } else if (a === 'comecar'){
-        const alvo = Number(root.querySelector('#alvo').value) || 15;
-        iniciar(e, root.querySelector('#tA').value, root.querySelector('#tB').value, { alvo, id: novoId('P', S.data) });
+        const [x, y] = [Number(root.querySelector('#tA').value), Number(root.querySelector('#tB').value)];
+        const feitas = aplicarSugestao(e);
+        const r = regras(cfg());
+        iniciar(e, x, y, { alvo: r.alvo, gatilho: r.gatilho, desempate: r.desempate, id: novoId('P', S.data) });
+        if (feitas.length) aviso('Revezamento: ' + feitas.map(t => `entra ${nomeDe(t.entra)}, sai ${nomeDe(t.sai)}`).join('; ') + '.');
+        par = null; editor = null;
         depoisDeMudar();
       } else if (a === 'priorizar'){
-        priorizar(e, Number(b.dataset.t)); guardar(); app.desenhar();
+        priorizar(e, Number(b.dataset.t)); par = null; guardar(); app.desenhar();
+      } else if (a === 'sug-sai'){
+        mudarSugestao(e, Number(b.dataset.i), b.dataset.id); guardar(); app.desenhar();
+      } else if (a === 'sug-confirmar'){
+        const feitas = aplicarSugestao(e);
+        if (feitas.length) aviso('Feito: ' + feitas.map(t => `entra ${nomeDe(t.entra)}, sai ${nomeDe(t.sai)}`).join('; ') + '.');
+        guardar(); app.desenhar();
+      } else if (a === 'editar' || a === 'adicionar'){
+        const t = Number(b.dataset.t), sai = a === 'editar' ? b.dataset.id : '';
+        editor = editor && editor.time === t && editor.sai === sai ? null : { time: t, sai };
+        app.desenhar();
+      } else if (a === 'trocar-com'){
+        trocar(e, editor.time, editor.sai, b.dataset.id);
+        editor = null; guardar(); app.desenhar();
+      } else if (a === 'tirar'){
+        trocar(e, editor.time, editor.sai, '');
+        editor = null; guardar(); app.desenhar();
+      } else if (a === 'fechar-editor'){
+        editor = null; app.desenhar();
       } else if (a === 'excluir'){
         if (!confirm('Excluir este jogo e todos os lances dele?')) return;
         excluir(e, b.dataset.id);
@@ -283,5 +396,5 @@ export function bind(root){
 export function sair(){
   pararDeOuvir?.(); pararDeOuvir = null;
   travaTela?.release().catch(() => {}); travaTela = null;
-  painel = null;
+  painel = null; editor = null;
 }

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { equilibrar, sortear, tamanhos, estatisticas, custo, paresDe, PESOS_PADRAO } from '../js/core/times.js';
+import { equilibrar, sortear, tamanhos, estatisticas, custo, paresDe, montarTimes, separarRevezamento, PESOS_PADRAO } from '../js/core/times.js';
 import { SEED } from '../js/seed.js';
 
 /* Gerador aleatório com semente, para os testes serem repetíveis */
@@ -76,4 +76,41 @@ test('sortear: pelo menos 1 mulher por time e todos sorteados', () => {
 test('sortear avisa quando há menos mulheres que times', () => {
   const todos = jogadores(r => r[1] === 'M').slice(0, 13).concat(jogadores(r => r[1] === 'F').slice(0, 3));
   assert.notEqual(sortear(todos, 4, { rng: rngFixo() }).aviso, '');
+});
+
+test('lista incompleta: máximo de times completos de 4 e o resto no revezamento', () => {
+  const homens = jogadores().filter(j => j.sexo === 'M'), mulheres = jogadores().filter(j => j.sexo === 'F');
+  const casos = [[7, 6, 3, 1], [7, 7, 3, 2], [8, 8, 4, 0], [10, 7, 4, 1], [5, 4, 2, 1]];
+  for (const [nh, nm, times, fora] of casos){
+    const todos = homens.slice(0, nh).concat(mulheres.slice(0, nm));
+    for (const modo of ['equilibrar', 'sortear']){
+      const opcoes = montarTimes(todos, { modo, rng: rngFixo(nh * 10 + nm) });
+      assert.ok(opcoes.length >= 1);
+      for (const o of opcoes){
+        assert.equal(o.times.length, times, `${nh}H ${nm}M: ${times} times`);
+        assert.equal(o.revezamento.length, fora, `${nh}H ${nm}M: ${fora} no revezamento`);
+        assert.ok(o.times.every(t => t.length === 4), 'todos os times completos');
+        const ids = o.times.flat().concat(o.revezamento).map(j => j.id).sort();
+        assert.deepEqual(ids, todos.map(j => j.id).sort(), 'ninguém some nem repete');
+        const st = o.times.map(estatisticas);
+        if (modo === 'equilibrar') assert.ok(Math.max(...st.map(s => s.mulheres)) - Math.min(...st.map(s => s.mulheres)) <= 1);
+        else assert.ok(st.every(s => s.mulheres >= 1));
+      }
+    }
+  }
+});
+
+test('revezamento escolhido para dividir homens e mulheres igualmente', () => {
+  // 7 homens e 6 mulheres em 3 times: tirando 1 homem, fica 2H + 2M em cada time
+  const todos = jogadores().filter(j => j.sexo === 'M').slice(0, 7).concat(jogadores().filter(j => j.sexo === 'F').slice(0, 6));
+  for (let s = 1; s <= 10; s++){
+    const { revezamento, numTimes } = separarRevezamento(todos, 4, rngFixo(s));
+    assert.equal(numTimes, 3);
+    assert.equal(revezamento.length, 1);
+    assert.equal(revezamento[0].sexo, 'M');
+  }
+});
+
+test('menos de 8 jogadores não forma 2 times', () => {
+  assert.throws(() => montarTimes(jogadores().slice(0, 7)), /pelo menos 8/);
 });

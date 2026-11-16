@@ -3,7 +3,6 @@ import { S, jogadores, jogador, ligarCelular, desligarCelular } from '../store.j
 import * as api from '../api.js';
 import { cabecalho, aviso, executar, app } from '../ui.js';
 import { esc, porNome, isoData } from '../core/util.js';
-import { POSICOES } from '../config.js';
 
 const fmtNota = v => (v === '' || v == null ? '—' : String(Math.round(Number(v) * 10) / 10).replace('.', ','));
 
@@ -30,9 +29,6 @@ function formulario(j = {}, { admin = false, botao = 'Salvar cadastro' } = {}){
         <label class="campo">Nascimento<input type="date" name="nascimento" min="1920-01-01" max="${isoData(new Date())}" value="${esc(j.nascimento)}"></label>
         <label class="campo">Altura (cm)<input type="number" name="altura_cm" inputmode="numeric" min="100" max="230" placeholder="Ex.: 175" value="${esc(j.altura_cm)}"></label>
       </div>
-      <fieldset class="grupo"><legend>Posição preferida</legend>
-        <div class="chips">${radios('posicao', Object.entries(POSICOES), j.posicao || 'tanto_faz', 'opcao chip')}</div>
-      </fieldset>
     </section>
     ${admin ? camposAdmin(j) : infoTipo(j)}
     <button class="btn pri bloco" type="submit">${botao}</button>
@@ -68,7 +64,6 @@ function lerFormulario(form){
   const f = new FormData(form), o = {};
   for (const k of ['nome', 'apelido_camisa', 'numero', 'nascimento', 'altura_cm']) o[k] = String(f.get(k) || '').trim();
   o.sexo = f.get('sexo') || '';
-  o.posicao = f.get('posicao') || 'tanto_faz';
   if (S.admin){
     o.tipo = f.get('tipo');
     o.nota_admin = Number(f.get('nota_admin'));
@@ -114,7 +109,7 @@ function telaAdminLista(){
   const grupo = (titulo, lista) => !lista.length ? '' : `<section class="cartao sem-pad">
     <h2 class="cartao-tit">${titulo} <span class="mut">(${lista.length})</span></h2>
     ${lista.map(j => `<button type="button" class="linha-j" data-a="editar" data-id="${esc(j.id)}">
-      <span class="nome">${esc(j.nome)}<small>${esc(j.sexo === 'F' ? 'F' : 'M')} · ${esc(POSICOES[j.posicao] || 'Tanto faz')}${j.altura_cm ? ' · ' + esc(j.altura_cm) + ' cm' : ''}${j.reivindicado ? '' : ' · sem celular'}</small></span>
+      <span class="nome">${esc(j.nome)}<small>${esc(j.sexo === 'F' ? 'F' : 'M')}${j.altura_cm ? ' · ' + esc(j.altura_cm) + ' cm' : ''}${j.reivindicado ? '' : ' · sem celular'}</small></span>
       <span class="nota" aria-label="Nota ${esc(fmtNota(j.nota))}">${esc(fmtNota(j.nota))}</span>
     </button>`).join('')}
   </section>`;
