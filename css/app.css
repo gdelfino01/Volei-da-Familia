@@ -143,6 +143,7 @@ input::placeholder,textarea::placeholder{color:#6B7280}
   background:#fff;border-top:1px solid var(--linha)}
 .barra a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:60px;min-height:52px;
   text-decoration:none;color:var(--texto-2);font-size:12px;font-weight:600}
+.barra a[hidden]{display:none}
 .barra a[aria-current="page"]{color:var(--pri);font-weight:700}
 
 /* Diálogo do PIN */
