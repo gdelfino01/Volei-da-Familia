@@ -31,8 +31,9 @@ export const SEED = [
 
 // Aba Config: [chave, valor]
 export const CONFIG_PADRAO = [
-  ['pontos_partida', 15],
-  ['times', 4],
+  ['pontos_partida', 11],
+  ['gatilho_desempate', 10],
+  ['pontos_desempate', 3],
   ['jogadores_por_time', 4],
   ['vagas', 16],
   ['suplentes', 3],

@@ -21,6 +21,9 @@ test('seed: 16 mensalistas (7 homens, 9 mulheres), notas de 1 a 5', () => {
 });
 
 test('abas da planilha seguem o modelo de dados', () => {
-  assert.deepEqual([...Object.keys(gs.ABAS)], ['Jogadores', 'Domingos', 'Presencas', 'Times', 'Partidas', 'Lances', 'Notas', 'Config']);
+  assert.deepEqual([...Object.keys(gs.ABAS)], ['Jogadores', 'Domingos', 'Presencas', 'Times', 'Partidas', 'Escalacoes', 'Revezamentos', 'Lances', 'Notas', 'Config']);
+  assert.deepEqual([...gs.ABAS.Escalacoes], ['partida_id', 'time', 'jogador_id']);
+  assert.deepEqual([...gs.ABAS.Revezamentos], ['domingo_id', 'partida_id', 'sai_jogador_id', 'entra_jogador_id']);
+  assert.ok(!gs.ABAS.Jogadores.includes('posicao'), 'posição preferida saiu do cadastro');
   assert.deepEqual([...gs.ABAS.Lances], ['id', 'partida_id', 'seq', 'time', 'jogador_id', 'tipo', 'criado_em']);
 });

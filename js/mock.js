@@ -12,9 +12,9 @@ function novoBanco(){
   return {
     Jogadores: SEED.map(([nome, sexo, nota_admin, tipo, idade_aprox], i) => ({
       id: 'J' + String(i + 1).padStart(3, '0'), nome, apelido_camisa: '', numero: '', sexo, nascimento: '', altura_cm: '',
-      posicao: 'tanto_faz', tipo, nota_admin, ativo: true, idade_aprox, apelidos: '', token_hash: ''
+      tipo, nota_admin, ativo: true, idade_aprox, apelidos: '', token_hash: ''
     })),
-    Domingos: [], Presencas: [], Times: [], Partidas: [], Lances: [], Notas: [],
+    Domingos: [], Presencas: [], Times: [], Partidas: [], Lances: [], Notas: [], Escalacoes: [], Revezamentos: [],
     Config: CONFIG_PADRAO.map(([chave, valor]) => ({ chave, valor }))
   };
 }
@@ -24,8 +24,10 @@ function db(){
   if (!banco){
     try { banco = JSON.parse(localStorage.getItem(CHAVE)); } catch { banco = null; }
     if (!banco) banco = novoBanco();
-    banco.Partidas ||= []; banco.Lances ||= []; banco.Notas ||= [];   // bancos de demonstração antigos
+    banco.Partidas ||= []; banco.Lances ||= []; banco.Notas ||= []; banco.Escalacoes ||= []; banco.Revezamentos ||= [];   // bancos de demonstração antigos
     for (const [chave, valor] of CONFIG_PADRAO) if (!banco.Config.some(c => c.chave === chave)) banco.Config.push({ chave, valor });
+    const pontos = banco.Config.find(c => c.chave === 'pontos_partida');
+    if (pontos && String(pontos.valor) === '15') pontos.valor = 11;   // nova regra (como o configurarPlanilha)
   }
   return banco;
 }
@@ -33,7 +35,7 @@ function salvar(){ try { localStorage.setItem(CHAVE, JSON.stringify(banco)); } c
 export function zerarDemo(){ banco = novoBanco(); salvar(); }
 
 const config = () => Object.fromEntries(db().Config.map(c => [c.chave, c.valor]));
-const publico = j => ({ id: j.id, nome: j.nome, apelido_camisa: j.apelido_camisa, numero: String(j.numero || ''), sexo: j.sexo, posicao: j.posicao, tipo: j.tipo, ativo: j.ativo !== false, reivindicado: !!j.token_hash });
+const publico = j => ({ id: j.id, nome: j.nome, apelido_camisa: j.apelido_camisa, numero: String(j.numero || ''), sexo: j.sexo, tipo: j.tipo, ativo: j.ativo !== false, reivindicado: !!j.token_hash });
 const dono = j => ({ ...publico(j), nascimento: j.nascimento, altura_cm: j.altura_cm });
 function admin(j, ultimas = {}){
   const nota_admin = Number(j.nota_admin) || 3, nota_final = ultimas[j.id] ?? '';
@@ -52,7 +54,7 @@ return { calcularNotas_, ultimasNotas_, periodosRanking_, rankingPeriodo_ };`)()
   }
   return notaLib;
 }
-const tabelasJogos = () => ({ jogadores: db().Jogadores, domingos: db().Domingos, times: db().Times, partidas: db().Partidas, lances: db().Lances, config: config() });
+const tabelasJogos = () => ({ jogadores: db().Jogadores, domingos: db().Domingos, times: db().Times, partidas: db().Partidas, lances: db().Lances, escalacoes: db().Escalacoes, config: config() });
 
 function exigirAdmin(pin){ if (String(pin || '') !== PIN_DEMO) throw new Error('PIN incorreto.'); }
 const domingo = data => db().Domingos.find(d => d.data === data) || null;
@@ -65,9 +67,10 @@ function garantirDomingo(data){
 const presencasDe = id => db().Presencas.filter(p => p.domingo_id === id).map(p => p.jogador_id);
 function timesDe(id){
   const t = [];
-  db().Times.filter(r => r.domingo_id === id).forEach(r => { (t[r.time_num - 1] ||= []).push(r.jogador_id); });
+  db().Times.filter(r => r.domingo_id === id && r.time_num >= 1).forEach(r => { (t[r.time_num - 1] ||= []).push(r.jogador_id); });
   return t.filter(Boolean);
 }
+const revezamentoDe = id => db().Times.filter(r => r.domingo_id === id && r.time_num === 0).map(r => r.jogador_id);
 
 const partidasDe = id => db().Partidas.filter(p => p.domingo_id === id)
   .map(({ id, seq, time_a, time_b, pontos_a, pontos_b, vencedor, fim }) => ({ id, seq, time_a, time_b, pontos_a, pontos_b, vencedor, fim }))
@@ -81,7 +84,6 @@ function validarPerfil(d, ehAdmin){
   if (tem('sexo')){ if (!['M', 'F'].includes(d.sexo)) throw new Error('Sexo inválido.'); o.sexo = d.sexo; }
   if (tem('nascimento')){ o.nascimento = d.nascimento || ''; if (o.nascimento && !ehIso(o.nascimento)) throw new Error('Data de nascimento inválida.'); }
   if (tem('altura_cm')){ o.altura_cm = d.altura_cm === '' ? '' : Math.round(Number(d.altura_cm)); if (o.altura_cm !== '' && !(o.altura_cm >= 100 && o.altura_cm <= 230)) throw new Error('Altura: de 100 a 230 cm.'); }
-  if (tem('posicao')) o.posicao = d.posicao || 'tanto_faz';
   if (ehAdmin){
     if (tem('tipo')) o.tipo = d.tipo === 'mensalista' ? 'mensalista' : 'avulso';
     if (tem('nota_admin')){ const n = Number(d.nota_admin); if (!(n >= 1 && n <= 5)) throw new Error('Nota: de 1 a 5.'); o.nota_admin = n; }
@@ -95,7 +97,7 @@ function validarPerfil(d, ehAdmin){
 const ACOES = {
   publico({ data }){
     const d = domingo(data);
-    return { config: config(), jogadores: db().Jogadores.map(publico), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [] };
+    return { config: config(), jogadores: db().Jogadores.map(publico), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], revezamento: d ? revezamentoDe(d.id) : [], partidas: d ? partidasDe(d.id) : [] };
   },
   async admin_dados({ pin, data }){
     exigirAdmin(pin);
@@ -104,7 +106,7 @@ const ACOES = {
     const anteriores = db().Domingos.filter(x => x.data < data).sort((a, b) => (a.data < b.data ? 1 : -1));
     let timesAnterior = [];
     for (const a of anteriores){ timesAnterior = timesDe(a.id); if (timesAnterior.length) break; }
-    return { config: config(), jogadores: db().Jogadores.map(j => admin(j, ultimas)), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], partidas: d ? partidasDe(d.id) : [], timesAnterior };
+    return { config: config(), jogadores: db().Jogadores.map(j => admin(j, ultimas)), domingo: d, presencas: d ? presencasDe(d.id) : [], times: d ? timesDe(d.id) : [], revezamento: d ? revezamentoDe(d.id) : [], partidas: d ? partidasDe(d.id) : [], timesAnterior };
   },
   meu_perfil({ id, token }){
     const j = db().Jogadores.find(x => x.id === id);
@@ -123,7 +125,7 @@ const ACOES = {
       const igual = mesmoNome(null);
       if (igual) throw new Error('Já existe um cadastro com o nome ' + igual.nome + '.');
       const max = Math.max(0, ...lista.map(j => Number(j.id.replace(/\D/g, ''))));
-      const novo = { apelido_camisa: '', numero: '', nascimento: '', altura_cm: '', posicao: 'tanto_faz', tipo: 'avulso', nota_admin: 3, ativo: true, idade_aprox: '', apelidos: '', token_hash: '', ...limpo, id: 'J' + String(max + 1).padStart(3, '0') };
+      const novo = { apelido_camisa: '', numero: '', nascimento: '', altura_cm: '', tipo: 'avulso', nota_admin: 3, ativo: true, idade_aprox: '', apelidos: '', token_hash: '', ...limpo, id: 'J' + String(max + 1).padStart(3, '0') };
       let tk = '';
       if (!ehAdmin){ tk = crypto.randomUUID(); novo.token_hash = tk; }
       lista.push(novo); salvar();
@@ -159,10 +161,15 @@ const ACOES = {
     const ids = new Set(partidas.map(p => p.id).concat(excluir));
     db().Partidas = db().Partidas.filter(p => !ids.has(p.id));
     db().Lances = db().Lances.filter(l => !ids.has(l.partida_id));
+    db().Escalacoes = db().Escalacoes.filter(r => !ids.has(r.partida_id));
+    db().Revezamentos = db().Revezamentos.filter(r => !ids.has(r.partida_id));
     for (const p of partidas){
       const pa = p.lances.filter(l => l.time === p.time_a).length, pb = p.lances.length - pa;
       db().Partidas.push({ id: p.id, domingo_id: d.id, seq: p.seq, time_a: p.time_a, time_b: p.time_b, pontos_a: pa, pontos_b: pb,
-        vencedor: p.fim && pa !== pb ? (pa > pb ? p.time_a : p.time_b) : '', alvo: p.alvo, inicio: p.inicio, fim: p.fim });
+        vencedor: p.fim && pa !== pb ? (pa > pb ? p.time_a : p.time_b) : '', alvo: p.alvo, inicio: p.inicio, fim: p.fim,
+        gatilho: p.gatilho, desempate: p.desempate });
+      for (const lado of ['A', 'B']) for (const j of p.escalacao?.[lado] || []) db().Escalacoes.push({ partida_id: p.id, time: lado, jogador_id: j });
+      for (const t of p.revezamentos || []) db().Revezamentos.push({ domingo_id: d.id, partida_id: p.id, sai_jogador_id: t.sai, entra_jogador_id: t.entra });
       p.lances.forEach((l, i) => db().Lances.push({ ...l, seq: i + 1, partida_id: p.id }));
     }
     if (d.status === 'aberto' && partidas.length) d.status = 'em_jogo';
@@ -184,13 +191,14 @@ const ACOES = {
     salvar();
     return { domingo: d, notas };
   },
-  salvar_times({ pin, data, times = [] }){
+  salvar_times({ pin, data, times = [], revezamento = [] }){
     exigirAdmin(pin);
     const d = garantirDomingo(data);
-    const linhas = times.flatMap((t, i) => t.map(id => ({ domingo_id: d.id, time_num: i + 1, jogador_id: id })));
+    const linhas = times.flatMap((t, i) => t.map(id => ({ domingo_id: d.id, time_num: i + 1, jogador_id: id })))
+      .concat(revezamento.map(id => ({ domingo_id: d.id, time_num: 0, jogador_id: id })));
     db().Times = db().Times.filter(r => r.domingo_id !== d.id).concat(linhas);
     salvar();
-    return { domingo: d, times: timesDe(d.id) };
+    return { domingo: d, times: timesDe(d.id), revezamento: revezamentoDe(d.id) };
   }
 };
 

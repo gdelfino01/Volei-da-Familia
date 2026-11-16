@@ -223,3 +223,17 @@ dialog h2{font:700 20px "Space Grotesk",Inter,sans-serif}
 .pos-2{background:#E5E7EB;color:#1F2937}
 .pos-3{background:#FED7AA;color:#7C2D12}
 .nota-c{font-weight:700;color:var(--pri-tinta)}
+
+/* ===== Escalação e revezamento ===== */
+.chip-j{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--borda);background:#fff;font-size:14px;font-weight:600;
+  cursor:pointer;touch-action:manipulation;color:var(--texto)}
+.chip-j.sel{background:var(--pri);border-color:var(--pri);color:#fff}
+.chip-j.mais{border-style:dashed;color:var(--pri)}
+.escalacao{border-top:6px solid var(--cor)}
+.escalacao h2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.editor{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--linha-2)}
+.sugestao{box-shadow:0 0 0 2px var(--laranja-claro)}
+.sugestao h2{display:flex;align-items:center;gap:8px}
+.troca{display:flex;flex-direction:column;gap:8px}
+.revez .tags{gap:8px}
+.desempate{padding:10px 12px;border-radius:10px;background:var(--laranja-claro);color:var(--laranja-tinta);font-weight:700;text-align:center}
