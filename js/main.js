@@ -19,9 +19,11 @@ const dlg = document.getElementById('dlgPin');
 const faixaOffline = document.getElementById('offline');
 let telaAtual = null;
 
+const SO_ADMIN = new Set(['lista']);   // telas que só o organizador vê
+
 function rota(){
   const r = location.hash.slice(1);
-  if (TELAS[r]) return r;
+  if (TELAS[r] && (S.admin || !SO_ADMIN.has(r))) return r;
   if (S.admin) return 'lista';
   return S.meu ? 'times' : 'perfil';
 }
@@ -29,6 +31,7 @@ function rota(){
 function desenhar(){
   const r = rota();
   faixaOffline.hidden = !(S.offline && S.dados);
+  document.querySelectorAll('.barra [data-so-admin]').forEach(a => { a.hidden = !S.admin; });
   document.querySelectorAll('.barra a').forEach(a => {
     if (a.getAttribute('href') === '#' + r) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');

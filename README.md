@@ -37,6 +37,7 @@ tests/            Testes (node --test), sem dependências
 - **Modo demonstração:** com `API_URL` vazia, o app funciona sozinho no navegador. O PIN de teste é `1234`.
 - **Quem faz o quê:**
   - Jogadores usam o **Perfil** (cadastro ligado ao celular) e veem os times, os resultados e o ranking.
+  - A aba **Lista** só aparece no modo organizador.
   - O organizador entra com o PIN e passa a ver a Lista, as notas, a montagem dos times, o placar e a edição de todos os cadastros.
 - **A nota nunca aparece para os jogadores.** A leitura pública da API não devolve nota, nascimento nem altura.
 - **Regras do jogo** (aba Config):
