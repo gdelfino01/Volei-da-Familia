@@ -4,91 +4,47 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#0B2D50">
-<title>Vôlei da Família 2026</title>
-<meta name="description" content="Conheça os uniformes do Vôlei da Família 2026 e faça o pedido do seu kit.">
-<meta property="og:title" content="Vôlei da Família 2026">
-<meta property="og:description" content="Conheça os uniformes e faça o pedido do seu kit.">
-<meta property="og:image" content="assets/img/logo.webp">
-<link rel="icon" href="assets/img/logo.webp">
+<meta name="theme-color" content="#F4F5F7">
+<title>Vôlei da Família · App</title>
+<meta name="description" content="Lista, times, placar e ranking da pelada Vôlei da Família.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/intro.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="./"><img class="logo" src="assets/img/logo.webp" alt="" width="46" height="46"><span>Vôlei da Família<small>Uniformes 2026</small></span></a>
-    <a class="btn pri sm" href="pedido.html">Fazer pedido</a>
-  </header>
+<div id="demo" class="faixa-demo" hidden><span></span> <button type="button" class="btn texto peq" data-global="zerar">Zerar dados</button></div>
 
-  <main>
-    <section class="hero">
-      <img class="hero-img" src="assets/img/logo.webp" width="1698" height="926" alt="Escudo do Vôlei da Família 2026: um homem e uma mulher saltando na rede, em azul-marinho, turquesa e dourado, sobre a areia.">
-      <div>
-        <div class="kicker">Kits 2026</div>
-        <h1>O uniforme da família para a areia</h1>
-        <p class="lead">Branco, turquesa e azul-marinho, com o escudo na frente e o seu nome e número nas costas.</p>
-        <div class="cta" id="hero-cta">
-          <a class="btn pri" href="pedido.html">Montar meu kit</a>
-          <small>Leva uns 2 minutos. Dá para pedir de 1 a 12 kits.</small>
-        </div>
-        <div class="colors" aria-label="Cores do uniforme">
-          <span><i style="background:#FFFFFF"></i>Branco</span>
-          <span><i style="background:#00B4C7"></i>Turquesa</span>
-          <span><i style="background:#0B2D50"></i>Azul-marinho</span>
-        </div>
-      </div>
-    </section>
+<div id="offline" class="faixa-offline" role="status" hidden>Sem conexão: mostrando os últimos dados guardados neste celular.</div>
 
-    <section aria-labelledby="t-modelos">
-      <h2 id="t-modelos">Os modelos</h2>
-      <div class="tabs" role="tablist" aria-label="Modelos do uniforme">
-        <button class="tab" role="tab" data-model="regata" aria-selected="true" aria-controls="model-regata">Regata e short</button>
-        <button class="tab" role="tab" data-model="camiseta" aria-selected="false" aria-controls="model-camiseta" tabindex="-1">Camiseta</button>
-        <button class="tab" role="tab" data-model="feminino" aria-selected="false" aria-controls="model-feminino" tabindex="-1">Feminino</button>
-      </div>
-      <figure class="model" id="model-regata" role="tabpanel">
-        <a href="assets/img/uniforme-regata.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-regata.webp" width="1536" height="1024" alt="Regata branca com recortes turquesa e azul-marinho, escudo e número 01 na frente, nome e número nas costas, e short azul-marinho com faixas laterais."></a>
-        <figcaption><b>Regata e short</b><span>Toque na imagem para ampliar</span></figcaption>
-      </figure>
-      <figure class="model" id="model-camiseta" role="tabpanel" hidden>
-        <a href="assets/img/uniforme-camiseta.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-camiseta.webp" width="1536" height="1024" loading="lazy" alt="Camiseta manga curta branca com mangas azul-marinho e recortes turquesa, escudo e número 01 na frente, nome e número nas costas."></a>
-        <figcaption><b>Camiseta manga curta</b><span>Toque na imagem para ampliar</span></figcaption>
-      </figure>
-      <figure class="model" id="model-feminino" role="tabpanel" hidden>
-        <a href="assets/img/uniforme-feminino.webp" target="_blank" rel="noopener"><img src="assets/img/uniforme-feminino.webp" width="1536" height="1024" loading="lazy" alt="Top cropped branco com recortes turquesa e azul-marinho, escudo e número na frente, nome e número nas costas, e short feminino azul-marinho."></a>
-        <figcaption><b>Top cropped e short feminino</b><span>Toque na imagem para ampliar</span></figcaption>
-      </figure>
-    </section>
+<main id="tela" class="tela" aria-live="polite"></main>
 
-    <section aria-labelledby="t-precos">
-      <h2 id="t-precos">Preços</h2>
-      <div class="prices" id="precos"></div>
-      <p class="note-line">Kit completo é parte de cima e short. Você escolhe a linha e os tamanhos de cada peça no pedido.</p>
-    </section>
+<nav class="barra" aria-label="Navegação principal">
+  <a href="#lista"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Lista</a>
+  <a href="#times"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.6 3.5 2.8 3.5 6"/></svg>Times</a>
+  <a href="#placar"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/></svg>Placar</a>
+  <a href="#ranking"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V11M12 20V4M18 20v-6"/></svg>Ranking</a>
+  <a href="#perfil"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Perfil</a>
+</nav>
 
-    <section aria-labelledby="t-detalhes">
-      <h2 id="t-detalhes">Detalhes</h2>
-      <div class="feats">
-        <div class="feat"><b>Tecido dry-fit</b><p>Leve, respirável e seca rápido no sol.</p></div>
-        <div class="feat"><b>Proteção UV</b><p>Feito para passar o dia na areia.</p></div>
-        <div class="feat"><b>Nome e número</b><p>Até 12 letras e número de 0 a 99 nas costas.</p></div>
-      </div>
-    </section>
+<dialog id="dlgPin" aria-labelledby="dlgPinTit">
+  <form method="dialog" class="pilha">
+    <h2 id="dlgPinTit">Modo organizador</h2>
+    <p class="mut">Para editar notas, salvar presença e montar times.</p>
+    <label class="campo">PIN<input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="20"></label>
+    <p class="erro" role="alert"></p>
+    <div class="grade2">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn pri" value="entrar">Entrar</button>
+    </div>
+  </form>
+</dialog>
 
-    <section class="final" id="final-cta">
-      <h2>Juntos no jogo, sempre</h2>
-      <p>Monte o kit de cada pessoa e envie o pedido.</p>
-      <a class="btn pri" href="pedido.html">Montar meu kit</a>
-    </section>
-  </main>
-</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<div class="stickycta" id="stickycta"><a class="btn pri" href="pedido.html">Montar meu kit</a></div>
-
-<script type="module" src="js/intro.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

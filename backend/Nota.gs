@@ -3,7 +3,7 @@
  *
  * Funções puras: recebem as linhas das abas (como objetos) e devolvem resultados.
  * Não usam nada do Apps Script, então rodam também no Node (tests/nota.test.js)
- * e no modo demonstração do site (app/js/mock.js carrega este arquivo).
+ * e no modo demonstração do site (js/mock.js carrega este arquivo).
  *
  * Regra da nota (pesos na aba Config):
  * - Valor de cada lance para quem fez: ataque +1, bloqueio +1, ace +1,5, erro −0,5, erro do adversário 0.

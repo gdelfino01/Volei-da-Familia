@@ -2,7 +2,7 @@
   "name": "volei-da-familia",
   "private": true,
   "type": "module",
-  "description": "Site do uniforme e app da pelada Vôlei da Família (estático, sem build)",
+  "description": "App da pelada Vôlei da Família (estático, sem build)",
   "scripts": {
     "test": "node --test \"tests/*.test.js\""
   }

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { SEED, CONFIG_PADRAO } from '../app/js/seed.js';
+import { SEED, CONFIG_PADRAO } from '../js/seed.js';
 
 /* Carrega o Setup.gs no Node (as constantes do topo não dependem do Apps Script) */
 const codigo = readFileSync(new URL('../backend/Setup.gs', import.meta.url), 'utf8');

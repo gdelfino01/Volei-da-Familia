@@ -32,7 +32,7 @@ const COLUNAS_TEXTO = {
   Config:    ['chave', 'valor']
 };
 
-// [nome, sexo, nota_admin, tipo, idade_aprox]. Igual a app/js/seed.js (o teste tests/seed.test.js confere).
+// [nome, sexo, nota_admin, tipo, idade_aprox]. Igual a js/seed.js (o teste tests/seed.test.js confere).
 const SEED = [
   ['Adriana', 'F', 4, 'mensalista', 55],
   ['Alaine', 'F', 4, 'mensalista', 55],

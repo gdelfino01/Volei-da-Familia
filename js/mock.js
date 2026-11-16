@@ -44,7 +44,7 @@ function admin(j, ultimas = {}){
 let notaLib = null;
 async function lib(){
   if (!notaLib){
-    const resp = await fetch(new URL('../../backend/Nota.gs', import.meta.url));
+    const resp = await fetch(new URL('../backend/Nota.gs', import.meta.url));
     if (!resp.ok) throw new Error('Não foi possível carregar o cálculo da nota (backend/Nota.gs).');
     const codigo = await resp.text();
     notaLib = new Function(`${codigo}
